@@ -54,6 +54,8 @@
          end if;
          end if;
        end;
+       
+       
        6.case 使用
        set serverout on;
        declare emp_count number;
@@ -67,3 +69,45 @@
            when 4 then dbms_output.put_line('有员工大于3个，工资大于3000');
           end case;
         end;
+
+
+      7.loop的使用
+        set serverout on;
+        declare g_id number :=1;
+                g_losal number;
+                g_hisal number;
+         begin
+           loop
+             if(g_id>4) then
+                 exit;
+              end if;
+              select losal,hisal into g_losal,g_hisal from salgrade where grade=g_id;
+              dbms_output.put_line(g_id || '等级的最低薪资' || g_losal || '最高工资' || g_hisal);
+              g_id := g_id+1;
+            end loop;
+          end;
+          
+      8.while的使用
+        set serverout on;
+        declare g_id number :=1;
+                g_losal number;
+                g_hisal number;
+         begin
+            while g_id<5 loop
+              select losal,hisal into g_losal,g_hisal from salgrade where grade=g_id;
+              dbms_output.put_line(g_id || '等级的最低薪资' || g_losal || '最高工资' || g_hisal);
+              g_id := g_id+1;
+            end loop;
+          end;
+          
+       9.for 的使用
+        set serverout on;
+        declare g_id number :=1;
+                g_losal number;
+                g_hisal number;
+         begin
+            for g_id in 2..4 loop
+              select losal,hisal into g_losal,g_hisal from salgrade where grade=g_id;
+              dbms_output.put_line(g_id || '等级的最低薪资' || g_losal || '最高工资' || g_hisal);
+            end loop;
+          end;
