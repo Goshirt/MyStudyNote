@@ -1,0 +1,69 @@
+流程控制学习：
+      打开 command window,切换到Editor模式，复制代码到dialog中，并添加一个/,enter看到执行结果
+      
+      
+      1.
+      set serverout on; //为了可以在dialog中看到输出结果
+      begin
+        dbms_output.put_line('hello');
+       end;
+       
+       
+       2.
+      set serverout on;
+      declare n number :=1;
+      begin
+        dbms_output.put_line('hello'|| n);
+       end;
+       
+       
+       3.
+      set serverout on;
+      set serverout on;
+      declare n number :=1;
+              name varchar2(20) :='word';
+      begin
+        dbms_output.put_line('hello'|| n || name);
+       end;
+       
+       
+       4.简单的if-else查询
+       set serverout on;
+       declare emp_count number;
+       begin
+         select count(*) into emp_count from EMP where sal >=3000;
+         if emp_count > 0 then
+           dbms_output.put_line('有员工' || emp_count || '工资大于3000');
+          else
+            dbms_output.put_line('没有员工工资大于3000');
+           end if;
+       end;
+       
+       
+       5.多个else if 查询，当有多少个if 出现，就得end if多少个匹对
+       set serverout on;
+       declare emp_count number;
+       begin
+         select count(*) into emp_count from EMP where sal >=3000;
+         if emp_count =1 then
+           dbms_output.put_line('有员工1个，工资大于3000');
+         else if emp_count > 1 then
+           dbms_output.put_line('有多于1个员工，工资大于3000');
+         else
+            dbms_output.put_line('没有员工工资大于3000');
+         end if;
+         end if;
+       end;
+       6.case 使用
+       set serverout on;
+       declare emp_count number;
+       begin
+         select count(*) into emp_count from EMP where sal >=3000;
+         case emp_count
+           when 0 then dbms_output.put_line('没有员工工资大于3000');
+           when 1 then dbms_output.put_line('有员工1个，工资大于3000');
+           when 2 then dbms_output.put_line('有员工2个，工资大于3000');
+           when 3 then dbms_output.put_line('有员工3个，工资大于3000');
+           when 4 then dbms_output.put_line('有员工大于3个，工资大于3000');
+          end case;
+        end;
