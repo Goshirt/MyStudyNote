@@ -111,3 +111,114 @@
               dbms_output.put_line(g_id || '等级的最低薪资' || g_losal || '最高工资' || g_hisal);
             end loop;
           end;
+          
+          
+       10.简单的游标的使用
+         set serverout on;
+          declare cursor cu_emp is
+                  select empno,ename,sal from emp;
+            e_no number;
+            e_name varchar2(10);
+            e_sal number;
+          begin
+            open cu_emp;
+            fetch cu_emp into e_no,e_name,e_sal;
+            while cu_emp%found loop
+                  dbms_output.put_line('编号'|| e_no || '姓名'|| e_name ||'基本薪资'|| e_sal);
+                  fetch cu_emp into e_no,e_name,e_sal;
+                end loop;
+              close cu_emp;
+          end;
+          
+        11.使用 tableName.attr%type 动态的指定变量的类型与表字段的类型一样
+        set serverout on;
+          declare cursor cu_emp is
+                  select empno,ename,sal from emp;
+            e_no emp.empno%type;
+            e_name emp.ename%type;
+            e_sal emp.sal%type;
+          begin
+            open cu_emp;
+            fetch cu_emp into e_no,e_name,e_sal;
+            while cu_emp%found loop
+                  dbms_output.put_line('编号'|| e_no || '姓名'|| e_name ||'基本薪资'|| e_sal);
+                  fetch cu_emp into e_no,e_name,e_sal;
+                end loop;
+              close cu_emp;
+          end;
+          
+          
+          12.使用 tabkeName%rowtype 动态的指定一个变量，并且该变量为表所有的字段的类型，相当于row,减少变量的定义
+          set serverout on;
+          declare cursor cu_emp is
+                  select * from emp;
+           e_row emp%rowtype;  
+          begin
+            open cu_emp;
+            fetch cu_emp into e_row;
+            while cu_emp%found loop
+                  dbms_output.put_line('编号'|| e_row.empno || '姓名'|| e_row.ename ||'基本薪资'|| e_row.sal);
+                  fetch cu_emp into e_row;
+                end loop;
+              close cu_emp;
+          end;
+          
+          13.隐式游标的使用  sql%isopen boolean值，隐式游标打开为true 默认关闭
+           set serverout on;
+          begin
+            if sql%isopen then
+              dbms_output.put_line('游标打开');
+             else
+               dbms_output.put_line('游标关闭');
+              end if;
+            end;
+            
+          14.动态游标的使用  type  is ref cursor return emp%rowtype; 定义一个类型为游标并且指定游标的返回数据的类
+           set serverout on;
+            declare type emptype is ref cursor return emp%rowtype;  //指定了该游标只能是表emp的行类型
+            cu_emp emptype; // 定义这个类的一个变量
+            e_count number;
+            e emp%rowtype;
+            begin
+              select count(*) into e_count from emp where job='PRESIDENT';
+              if e_count > 0 then  //如果大于0，cu_emp就是返回表的都有数据
+                open cu_emp for select * from emp;  //
+              else   //没有那个人，cu_emp返回的就是符合条件的数据
+                open cu_emp for select * from emp where job='PRESIDENT';
+               end if;
+               fetch cu_emp into e;
+                     while cu_emp%found loop
+                       dbms_output.put_line('编号'|| e.empno || '姓名'|| e.ename ||'基本薪资'|| e.sal);
+                       fetch cu_emp into e;
+                       end loop;
+                  close cu_emp;
+              end;
+              
+           15.动态游标的弱类型 不指定游标的数据类型，根据业务指定
+           set serverout on;
+            declare type customType is ref cursor;
+               e_count number;
+               e emp%rowtype;
+               s salgrade%rowtype;
+               cType customType;
+               begin
+                 select count(*) into e_count from emp where job='PRESIDENT';
+                 if e_count > 0 then
+                   open cType for select * from salgrade;
+                       fetch cType into s;
+                          while cType%found loop
+                           dbms_output.put_line(s.grade || '等级的最低薪资' || s.losal || '最高工资' || s.hisal); 
+                            fetch cType into s;
+                            end loop;
+                           close cType;
+                  else
+                    open cType for select * from emp;
+                      fetch cType into e;
+                          while cType%found loop
+                           dbms_output.put_line('编号'|| e.empno || '姓名'|| e.ename ||'基本薪资'|| e.sal);
+                            fetch cType into e;
+                            end loop;
+                           close cType;
+                    end if;
+
+                 end;
