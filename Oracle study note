@@ -290,8 +290,116 @@
                       commit;
                     end;
                   end addBook3;
+		  
+		  21.触发器
+		     表级触发器
+		     create trigger tr_book
+			before insert
+			on t_book     //在对该表进行插入时触发
+			begin
+			  if user!='cc' then   //如果用户名不是cc,触发输出语句
+			    raise_application_error(-20001,'权限不足');
+			  end if;
+			end;
+			
+		   create trigger tr_book2
+			before update or delete
+			on t_book    //在对表进行更新时触发
+			begin
+			  if user!='CC' then
+			    raise_application_error(-20001,'权限不足');
+			  end if;
+			end;
+			
+			
+		create trigger tr_book_log
+		after insert or update or delete
+		on t_book       //在对表进行插入或者更新时触发
+		begin
+		  if updating then   //进行更新时
+		    insert into t_book_log values(user,'update',sysdate);
+		  else if inserting then   //进行插入时
+		    insert into t_book_log values(user,'insert',sysdate);
+		  else if deleting then   //进行删除时
+		    insert into t_book_log values(user,'delete',sysdate);
+		  end if;
+		  end if;
+		  end if;
+		end;
                   
                   
+		  
+	 行内触发器，与表级触发器语法差不多，多一个for each row
+	 create trigger tr_book_add
+		after insert
+		on t_book
+		for each row
+		begin
+		  update t_booktype set num=num+1 where id=:new.typeId;
+		end;
+	
+	
+	22.权限以及授权
+	Oracle 用户分两种，一种是系统用户 sys system ；另外一种是普通用户；
+	视图 dba_users 存储着所有用户信息；
+	
+	创建用户：
+	Create user 用户名 identified by 密码 default tablespace 表空间
+	create user TEST identified by 123456 default tablespace users;
+	
+	授予 session 权限：grant create session to TEST;
+	
+	锁定和开启帐号：alter user TEST account lock / unlock ;
+	
+	修改用户密码：alter user TEST identified by 123 ;
+	
+	删除用户： drop user TEST cascade ; 删除用户，并且把用户下的对象删除，比如表，视图，触发器等
+	
+	Oracle 权限分为系统权限和对象权限；
+	系统权限是 Oracle 内置的，与具体对象无关的权限，比如创建表的权限，连接数据库权限；
+	对象权限就是对具体对象，比如表，视图，触发器等的操作权限；
+	系统权限视图：system_privilege_map
+	权限分配视图：dba_sys_privs
+	
+	回收系统权限 revoke 权限 from 用户
+	
+	对象权限分配
+	用户表权限视图：dba_tab_privs
+	
+	给对象授权 grant 权限 on 对象 to 用户 with grant option;
+	
+	回收权限：revoke 对象权限 on 对象 from 用户；
+	
+	角色是权限的集合；可以给用户直接分配角色，不需要一个一个分配权限；
+	语法：
+	Create role 角色名称；
+	使用视图 dba_roles 可以查找角色信息
+	
+	23.包
+	
+	引入的目的，是为了有效的管理函数和存储过程，当项目模块很多的时候，用程序包管理就很有效了。
+	语法：
+	
+	Create or replace package 包名 as
+	变量名称 1 数据类型 1；
+	变量名称 2 数据类型 2；
+	...
+	...
+	Function 函数名称 1(参数列表) return 数据类型 1；
+	Function 函数名称 2(参数列表) return 数据类型 2；
+	...
+	...
+	Procedure 存储过程名称 1(参数列表)；
+	Procedure 存储过程名称 2(参数列表)；
+	
+	End 报名;
+		
+		
+		
+		
+		
+		
+		
                   PROCEDURE GET_STA_CUST_UPD_RECODE(
         vr2_sc_code IN VARCHAR2,
         num_user    IN INTEGER,
