@@ -150,3 +150,6 @@ git rebase master    将当前的分支的修改复制到master分支，然后�
 
 git rebase --onto master server client
 			以上命令的意思是：“取出 client 分支，找出处于 client 分支和 server 			分支以及master分支的共同祖先之后的修改，然后把它们在 master 分支上重			        放一遍”。git 分支3.6有详细讲解
+			
+			
+git config --global core.autocrlf true   当在Windows中使用git add 出现warning: LF will be replaced by CRLF in 问题时，可以使用该命令，这是因为不同系统对于换行符号的定义不一样出现的问题
