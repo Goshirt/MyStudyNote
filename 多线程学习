@@ -1,0 +1,21 @@
+1，线程的状态
+    （1）new：一个创建而未启动的线程处于该状态
+    （2）Runable:包含两个子状态Ready和Running,前者表示处于该状态下的线程可以被线程调度器进行调度，后者表示线程正在运行。Ready状态被线程调度器调度后变成Running状态，执行Thread.yield(),有可能导致Running状态转换为Ready状态。
+     (3) Blocked:当一个线程发起一个阻塞IO操作，或者申请一个其他线程持有的独占资源时，处于该状态。在该状态下不占用CPU资源，当阻塞IO操作完成后，或者获得了其申请的资源，该线程状态可以转换为Runnable.
+     (4) Waiting:一个线程执行某些特定方法之后会处于这种等待其他线程执行另外的特定操作。Object.wait(),Thread.join()和LockSupport.park(Object)可以使得线程变为Waiting状态，而执行Object.notify()/notifyAll()和LockSupport.unpark()可以使线程从Waiting变更为Runnable.
+     (5) Timed_Waiting:该状态和Waiting类似，差别在于不会无节制的等待期待线程执行特定操作，带有时间的限制，时间一到自动转换为Runnable.
+     (6) Terminated:已经执行结束的线程处于该状态。
+   
+   线程的竞态：
+     导致竞态的常见因素是多个线程在没有采取措施的情况下并发的读取更新一个共享变量（类变量）
+     两种模式：
+        读-改-写 ； 检查而后行动
+        
+   
+   原子性：
+      对于涉及共享变量的操作，若该操作从除本身外其他线程看是不可分割的，那么该操作就是原子操作，具有原子性
+      实现原子性：
+         （1）使用锁
+          (2)利用处理器的CAS指令
+      long和double以外的基本类型的写操作都是原子操作
+        
