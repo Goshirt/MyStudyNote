@@ -397,71 +397,56 @@
 		
 		
 		
+	//genCVS File & update fileName on RIU_REPORT_ENQ_LOG 
+	public void onExport2CVS(){
+		final String THIS_METHOD = "onExport2CVS";
+		List<PowerUsageTO> powerUsageList = this.getPowerUsageList().getValueList();
+		System.out.println("start gen cvs");
+		HttpServletResponse response = (HttpServletResponse) FacesContextUtil.getExternalContext().getResponse();
+		response.setContentType("text/csv");
+		String fileName = "Power_Usage_"+powerUsageList.get(0).getPackNo()+"_"+powerUsageList.get(0).getBeginUsageDate()+"-"+powerUsageList.get(0).getEndUsageDate()+".csv";
+		response.setHeader("Content-disposition", "attachment; filename=\"" + fileName+"\"");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter out = null;
+		try {
+			out = response.getWriter();
+			out.println(this.genSearchList2CSV(powerUsageList));
+			out.flush();
+			out.close();
+			this.reportEnqLogTO.setGenFlieName(fileName);
+			//update riu_report_enq_log gen_file_name & gen_flag
+			IReportFacade iReportFacade = (IReportFacade) WttSpringAppContextUtil.getBean(ReportConstant.RIU_REPORT_PROXY);
+			iReportFacade.updFileNameOnReportLog(reportEnqLogTO);
+			System.out.println("gen cvs success");
+		} catch (IOException e) {
+			iLog.error(THIS_METHOD, "error writing output for cvs export");
+		}
+		FacesContextUtil.getFacesContext().responseComplete();
+	}
+	
+	private String genSearchList2CSV(List<PowerUsageTO> powerUsageList){
+		final String THIS_METHOD = "genSearchList2CSV";
+		SimpleDateFormat spFormat = new SimpleDateFormat("yyyy/MM/dd");
+		StringWriter sWriter = new StringWriter();
+		try {
+			ExcelCSVPrinter ecp = new ExcelCSVPrinter(sWriter);
+			ecp.write("Rack No.");
+			ecp.write("Usage Date");
+			ecp.write("KVA");
+			ecp.writeln();
+			for (int i = 0; i < powerUsageList.size(); i++) {
+				PowerUsageTO item = (PowerUsageTO)powerUsageList.get(i);
+				ecp.write(item.getPackNo());
+				ecp.write(spFormat.format(item.getUsageDate()));
+				ecp.write(item.getPowerKVAMax());
+				ecp.writeln();
+			}
+		} catch (Exception e) {
+			iLog.error(THIS_METHOD, e.getMessage(),e);
+		}
+		return sWriter.toString();
+	}	
 		
 		
-		
-                  PROCEDURE GET_STA_CUST_UPD_RECODE(
-        vr2_sc_code IN VARCHAR2,
-        num_user    IN INTEGER,
-        rec_for_query    OUT   SYS_TYPES.cursor_type,
-        num_status OUT INTEGER,
-        num_msg_no OUT INTEGER,
-        vr2_msg_key OUT VARCHAR2,
-        vr2_msg_param OUT VARCHAR2,
-        vr2_dbg_pos OUT VARCHAR2,
-        vr2_msg_severity OUT VARCHAR2,
-        num_elapse OUT INTEGER )
-       IS
-           vr2_status_cd   VARCHAR2(15);
-           pi_trans_start	NUMBER;
-           debug_pos		NUMBER	:= 0;
-           vr2_procname    VARCHAR2(35) := 'CRM_CUST.GET_HOTLINE_NUM';
-           vr2_log_param   CSBS_ADM.SYS_SQLERR_LOG.APP_PARAM%TYPE;
-	         num_log_id      NUMBER;
-        BEGIN
-            num_status := SYS_CONST.NUM_SP_RESULT_FAIL;
-            num_msg_no := 0;
-            vr2_msg_key := '';
-            vr2_dbg_pos := '';
-            vr2_msg_severity := '';
-            vr2_log_param := 'vr2_sc_code' || vr2_sc_code ;
-         OPEN rec_for_query for
-            SELECT * FROM cust_strategic_cust_list_at0  WHERE sc_code = vr2_sc_code order by chg_act_date;
-          SYS_ACCESS.END_NORMAL(
-              num_sequ_id   => num_log_id
-              , num_err_code  => SQLCODE
-              , vr2_err_text  => SQLERRM
-              , vr2_app_msg   => NULL
-            );
-            num_status := Sys_Const.NUM_SP_RESULT_SUCCESS;
-            num_elapse := (DBMS_UTILITY.GET_TIME - pi_trans_start);
-          EXCEPTION
-             WHEN OTHERS THEN
-              num_status := Sys_Const.NUM_SP_RESULT_FAIL;
-              num_msg_no := SQLCODE;
-              vr2_msg_key := 'SYS.E00001';
-              vr2_msg_param := SQLERRM || Sys_Const.VR2_COL_SYB;
-              vr2_dbg_pos := 'PROCEDURE ' || vr2_procname || '(' ||
-                TO_CHAR(debug_pos) || ')';
-              vr2_msg_severity := 'E';
-              num_elapse := (DBMS_UTILITY.GET_TIME - pi_trans_start);
-              SYS_ACCESS.END_ERROR(
-                  num_sequ_id      => num_log_id
-                  , num_err_code   => SQLCODE
-                  , vr2_err_text   => SQLERRM
-                  , vr2_app_msg    => vr2_dbg_pos
-              );
-          END;
-          
-          
-          PROCEDURE GET_STA_CUST_UPD_RECODE(
-        vr2_sc_code IN VARCHAR2,
-        num_user    IN INTEGER,
-        num_status OUT INTEGER,
-        num_msg_no OUT INTEGER,
-        vr2_msg_key OUT VARCHAR2,
-        vr2_msg_param OUT VARCHAR2,
-        vr2_dbg_pos OUT VARCHAR2,
-        vr2_msg_severity OUT VARCHAR2,
-        num_elapse OUT INTEGER ); 
+                 
                
