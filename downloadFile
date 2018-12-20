@@ -1,0 +1,544 @@
+/**
+	 * Handling single file download.
+	 * 
+	 * @exception		any IOException occurred in streams
+	 * @exception		any FTP exception occurred
+	 * @exception		any other exceptions 
+	 */
+	public void onSingleFileDownload() {
+		
+		// DEV 1.6 -> 1.7 2009 Jan 20 Danny Wong Chun
+		// FIXED slow response time issue
+		//
+		// Original implementation (before DEV 1.7)
+		// ------------------------------------
+		// FTP -> download -> FtpFile -> ZipFile -> read/write -> local temp file -> read/write -> HttpResponseStream
+		// (read/write are done in byte by byte way, no buffer) 
+		// Test case: large file (12.9MB orig, 6.xMB zipped) takes 90 seconds to have the Save File Dialog popup
+		// 
+		// DEV 1.7 Implementation
+		// ------------------------------------
+		// FTP -> download -> FtpFile -> ZipFile -> read/write -> HttpResponseStream
+		// (read/write are done in buffer style - 4096 bytes)
+		// Test case: large file (12.9MB orig, 6.xMB zipped) takes 3.1 seconds
+		
+		final String THIS_METHOD = "onSingleFileDownload";
+		
+		final boolean isDebug = iLog.isDebugEnabled();
+		
+		try {
+			IDistributionFacade iDtbFacade = (IDistributionFacade) WttSpringAppContextUtil.getBean(CTX_DTB_PROXY);
+			
+			ftClient.connect();
+			if (isDebug) {
+				iLog.debug(THIS_METHOD, ">> Now changing to directory [" + singleDownloadTO.getFileFolder() + "]");
+			}
+			ftClient.changeDirectory(singleDownloadTO.getFileFolder());
+			// to throw exception when file not found on ftp server
+			File ftpFile = File.createTempFile("ftp", SUFFIX_ZIP);
+			long start = System.currentTimeMillis();
+			if (isDebug) {
+				iLog.debug(THIS_METHOD, ">> START download file from FTP: " + singleDownloadTO.getUserFileName());
+			}
+			ftClient.downloadFile(ftpFile.getCanonicalPath(), singleDownloadTO.getStorageFileName());
+			if (isDebug) {
+				iLog.debug(THIS_METHOD, ">> END download file from FTP used time: " + (System.currentTimeMillis() - start));
+			}
+			
+			//File unzipFile = null;
+			ZipFile zipFile = new ZipFile(ftpFile);
+			Enumeration<? extends ZipEntry> zipEntrys = zipFile.entries();
+			ZipEntry zipEntry = (ZipEntry) zipEntrys.nextElement(); // zip file should contains one and only one file
+			String fileSuffix = "";
+			if (zipEntry.getName().indexOf(".") != -1) {
+				fileSuffix = zipEntry.getName().substring(zipEntry.getName().lastIndexOf("."));
+			}
+			String unzipFileName = singleDownloadTO.getStorageFileName();
+			StringBuffer sb = new StringBuffer(64);
+			//<START> D000225 Rainy Liu, Zhao Ming 2009-Nov-20
+			//Check need to preverse the file name
+			//
+			if("Y".equals(singleDownloadTO.getPerserved())){
+				sb.append(singleDownloadTO.getUserFileName().substring(0, singleDownloadTO.getUserFileName().lastIndexOf(".")))
+				.append(fileSuffix);
+			}else{
+				sb.append(singleDownloadTO.getDocCode())
+				  .append("_")
+				  .append(DateTimeUtil.date2numDateStr(singleDownloadTO.getAsOfDate()))
+				  .append("_")
+				  .append(singleDownloadTO.getCycleType())
+				  .append("_")
+				  .append(singleDownloadTO.getDataClass())
+				  //.append("_")
+				 // .append(unzipFileName.substring(0, unzipFileName.length() - SUFFIX_ZIP.length()))
+				  .append(fileSuffix);
+			}
+			//< END > D000225 Rainy Liu, Zhao Ming 2009-Nov-20
+//			sb.append(singleDownloadTO.getDocCode())
+//			  .append("_")
+//			  .append(unzipFileName.substring(0, unzipFileName.length() - SUFFIX_ZIP.length()))
+//			  .append(fileSuffix);
+			unzipFileName = sb.toString();
+			
+			// DEV 1.4 -> 1.5
+			// multiple download files should use same logging date/time instead of different one
+			// Therefore, function signature is changed. the date is now set from Java instead of 
+			// StoredProc
+			Date now = DateTimeUtil.getNowAsDate();
+			ServiceRTO serviceRTO = iDtbFacade.writeAccessLog(singleDownloadTO.getFileId(), now, this.userMB.getUser());
+			if (serviceRTO.isAllSpResultSuccess()) {
+				// http://wiki.apache.org/myfaces/Sending_Files
+				FacesContext context = FacesContextUtil.getFacesContext();
+				HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
+			
+				start = System.currentTimeMillis();
+				if (isDebug) {
+					iLog.debug(THIS_METHOD, ">> START directly unzipped file to HTTP response: " + unzipFileName);
+				}
+				// DEV 1.4 -> 1.5
+				// Make sure InputStream and FileOutputStream are 
+				// ALWAYS close. Core logic is left unchanged.
+				InputStream is = null;
+				OutputStream fos = null;
+				
+				int zipEntryStreamLength = 0;
+				
+				try {
+					is = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+					fos = new BufferedOutputStream(response.getOutputStream());
+					zipEntryStreamLength = is.available();
+					
+					int c;
+					while ((c = is.read()) != -1) {
+						fos.write(c);
+					}
+					fos.flush();
+					
+				} catch (IOException ioe) {
+					throw ioe;
+				} finally {
+					if (fos != null) {
+						fos.close();
+						fos = null;
+					}
+					if (is != null) {
+						is.close();
+						is = null;
+					}
+				}
+				zipFile.close();
+				ftpFile.delete();
+				if (isDebug) {
+					iLog.debug(THIS_METHOD, ">> END directly unzipped file to HTTP response: " + (System.currentTimeMillis() - start));
+				}
+				
+				response.setContentType("application/data");
+				response.setHeader("Content-Length", String.valueOf(zipEntryStreamLength));
+				response.setHeader("Content-Disposition", "attachment;filename=\"" + unzipFileName + "\"");
+			
+				context.responseComplete();
+				
+			} else {
+				if (iLog.isErrorEnabled()) {
+					iLog.error(THIS_METHOD, serviceRTO.getFirstSpResult().getMsgTO().getMsg());
+				}
+				msgMB.appendMsgTOList(serviceRTO.getServiceMessages());
+				msgMB.enableEnforceDisplay();
+			}
+		} catch (Exception e) {
+			ErrorHandlingUtil.handleJsfMBExceptionErrorRedirect(iLog, e, THIS_METHOD, null);
+		} finally {
+			if (ftClient.isConnected()) {
+				try {
+					ftClient.disconnect();
+				} catch (Exception e) {
+					if (iLog.isErrorEnabled()) {
+						iLog.error(THIS_METHOD, e.getMessage());
+					}
+					msgMB.addTO(new MsgTO(e));
+					msgMB.enableEnforceDisplay();
+				}
+			}
+		}
+	}
+  
+  
+  /**
+	 * Handling multiple files download. Download will NOT continue if all 
+	 * <p>1.) no. of selected files > restriction</p>
+	 * <p>2.) total download size > restriction</p>
+	 * 
+	 * Selected file(s) will be skipped if
+	 * <p>1.) file path specified in the DtbFileDocTO not found in ftp</p>
+	 * <p>2.) per file access log insertion failed (warning message will be
+	 *        given to user so that they know which files are skipped)</p>
+	 * 
+	 * @exception		any IOException occurred in streams
+	 * @exception		any FTP exception occurred
+	 * @exception		any other exceptions 
+	 */
+	public void onMultipleFileDownload() {
+		
+		final String THIS_METHOD = "onMultipleFileDownload";
+		
+		final boolean isDebug = iLog.isDebugEnabled();
+		
+		List<DtbFileDocTO> selectedList = new ArrayList<DtbFileDocTO>();
+		for (DtbFileDocTO obj : dtbFileDocTOList) {
+			if (obj.isSelected()) {
+				selectedList.add(obj);
+			}
+		}
+		int selectedSize = selectedList.size();
+		
+		// DEV 1.4 -> 1.5
+		// Add checking on no. of file download restriction
+		// if selected file > restriction then
+		//    add warning message
+		// else 
+		//    follow existing logic
+		// end if
+		if (selectedSize > noDownloadFilesPerBatch) {
+			MsgTO msgTO = new MsgTO(DateTimeUtil.getNowAsDate(), MsgConstant.TYPE_WARN, "csbs_err_download_tooManyFiles", new Integer(noDownloadFilesPerBatch).toString());
+			msgMB.addTO(msgTO);
+			msgMB.enableEnforceDisplay();
+		} else if (selectedSize > 0 && selectedSize <= noDownloadFilesPerBatch) {
+			try {
+				IDistributionFacade iDtbFacade = (IDistributionFacade) WttSpringAppContextUtil.getBean(CTX_DTB_PROXY);
+				List<File> unzipFileList = new ArrayList<File>();
+				
+				// DEV 1.4 -> 1.5
+				// BUG FIX
+				// multiple download files should use same logging date/time instead of different one
+				Date now = DateTimeUtil.getNowAsDate();
+				
+				ftClient.connect();
+				
+				// DEV 1.4 -> 1.5
+				// Calculate total selected download file size
+				long sizeSum = 0;
+				for (DtbFileDocTO obj : selectedList) {
+					try {
+						ftClient.changeDirectory(obj.getFileFolder());
+						FTPFile[] ftpFiles = ftClient.directoryList();
+						sizeSum += ftpFiles[0].size();
+					} finally {
+						ftClient.changeToParentDirectory();
+					}
+				}
+				
+				// DEV 1.4 -> 1.5
+				// Add checking on download file size restriction
+				// if total size of selected files > restriction then
+				//    add warning message
+				// else 
+				//    follow existing logic
+				// end if
+				if (sizeSum > sizeRestrictionInBytes) {
+					MsgTO msgTO = new MsgTO(DateTimeUtil.getNowAsDate(), MsgConstant.TYPE_WARN, "csbs_err_download_overSized", null);
+					msgMB.addTO(msgTO);
+					msgMB.enableEnforceDisplay();
+				} else {
+					long start = System.currentTimeMillis();
+					if (isDebug) {
+						iLog.debug(THIS_METHOD, ">> START fetching file lists, download and unzip files one by one");
+					}
+					
+					long perFileStart;
+					for (DtbFileDocTO obj : selectedList) {
+						try {
+							ftClient.changeDirectory(obj.getFileFolder());
+							
+							// NOT to throw exception when file not found on ftp server
+							if (ftClient.exists(obj.getStorageFileName())) {
+								File ftpFile = File.createTempFile("ftp", SUFFIX_ZIP);
+								
+								perFileStart = System.currentTimeMillis();
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>> 	START downloading file :" + ftpFile.getName());
+								}
+								
+								ftClient.downloadFile(ftpFile.getCanonicalPath(), obj.getStorageFileName());
+								
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>> 	END downloading file, used:" + (System.currentTimeMillis() - perFileStart));
+								}
+								
+								File unzipFile = null;
+								ZipFile zipFile = new ZipFile(ftpFile);
+								Enumeration<? extends ZipEntry> zipEntrys = zipFile.entries();
+								ZipEntry zipEntry = (ZipEntry) zipEntrys.nextElement(); // zip file should contains one and only one file
+								String fileSuffix = "";
+								if (zipEntry.getName().indexOf(".") != -1) {
+									fileSuffix = zipEntry.getName().substring(zipEntry.getName().lastIndexOf("."));
+								}
+								String unzipFileName = obj.getStorageFileName();
+								unzipFileName = unzipFileName.substring(0, unzipFileName.length() - SUFFIX_ZIP.length()) + fileSuffix;
+								unzipFile = File.createTempFile(obj.getDocCode() + "_" + unzipFileName + "_", null);
+								
+								// DEV 1.4 -> 1.5
+								// Make sure InputStream and FileOutputStream are 
+								// ALWAYS close. Core logic is left unchanged.
+								InputStream is = null;
+								OutputStream fos = null;
+								
+								perFileStart = System.currentTimeMillis();
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>> 	START unzipping file :" + ftpFile.getName());
+								}
+								
+								try {
+									is = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+									fos = new BufferedOutputStream(new FileOutputStream(unzipFile));
+									int b;
+									while ((b = is.read()) != -1) {
+										fos.write(b);
+									}
+									fos.flush();
+								} catch (IOException ioe) {
+									throw ioe;
+								} finally {
+									if (fos != null) {
+										fos.close();
+										is = null;
+									}
+									if (is != null) {
+										is.close();
+										is = null;
+									}
+								}
+								
+								zipFile.close();
+								ftpFile.delete();
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>> 	END unzipping file, used:" + (System.currentTimeMillis() - perFileStart));
+								}
+								
+								// DEV 1.4 -> 1.5
+								// BUG FIX
+								// multiple download files should use same logging date/time instead of different one
+								ServiceRTO serviceRTO = iDtbFacade.writeAccessLog(obj.getFileId(), now, this.userMB.getUser());
+								if (serviceRTO.isAllSpResultSuccess()) {
+									// download allowed ONLY log written successful 
+									unzipFileList.add(unzipFile);
+								} else {
+									obj.setSelected(false);
+									if (iLog.isErrorEnabled()) {
+										iLog.error(THIS_METHOD, serviceRTO.getFirstSpResult().getMsgTO().getMsg());
+									}
+									msgMB.appendMsgTOList(serviceRTO.getServiceMessages());
+									msgMB.enableEnforceDisplay();
+								}
+							} else {
+								//
+								// DEV 1.4 -> 1.5
+								// if file is not found then
+								//    add msg notifying user which file are not downloaded
+								// end if
+								obj.setSelected(false);
+								
+								MsgTO msgTO = new MsgTO(DateTimeUtil.getNowAsDate(), MsgConstant.TYPE_WARN, "csbs_err_download_fileNotFound", obj.getUserFileName());
+								msgMB.addTO(msgTO);
+								msgMB.enableEnforceDisplay();
+								
+							} // end else -> file not exists
+						} catch (Exception e) {
+							obj.setSelected(false);
+							ErrorHandlingUtil.handleException(iLog, e, THIS_METHOD, null);
+						} finally {
+							ftClient.changeToParentDirectory();
+						}
+					}
+					
+					if (isDebug) {
+						iLog.debug(THIS_METHOD, ">> END fetching file lists, download and unzip files one by one, used: " + (System.currentTimeMillis() - start));
+					}
+				
+					if (unzipFileList.size() > 0) {
+						
+						start = System.currentTimeMillis();
+						if (isDebug) {
+							iLog.debug(THIS_METHOD, ">> START fetching unzipped and pack them to one zip");
+						}
+						
+						File tempZipFile = File.createTempFile("download", SUFFIX_ZIP);
+						
+						// DEV 1.4 -> 1.5
+						// Make sure ZipOutputStream and FileInputStream are 
+						// ALWAYS close. Core logic is left unchanged.
+						ZipOutputStream zos = null;
+						InputStream fis = null;
+						try {
+							zos = new ZipOutputStream(new FileOutputStream(tempZipFile));
+							zos.setLevel(Deflater.DEFAULT_COMPRESSION);
+							
+							for (File unzipFile : unzipFileList) {
+								
+								perFileStart = System.currentTimeMillis();
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>>	 START packing unzipped file to one zip, file: " + unzipFile.getName());
+								}
+								
+								zos.putNextEntry(new ZipEntry(unzipFile.getName().substring(0, unzipFile.getName().lastIndexOf("_"))));
+								fis = new BufferedInputStream(new FileInputStream(unzipFile));
+								int i;
+								while ( (i = fis.read()) != -1 ) {
+									zos.write(i);
+								}
+								zos.closeEntry();
+								fis.close();
+								unzipFile.delete();
+								
+								if (isDebug) {
+									iLog.debug(THIS_METHOD, ">>>>	 END packing unzipped to one zip, used: " + (System.currentTimeMillis() - perFileStart));
+								}
+								
+							}
+						} catch (IOException ioe) {
+							throw ioe;
+						} finally {
+							if (zos != null) {
+								zos.close();
+								zos = null;
+							}
+							if (fis != null) {
+								fis.close();
+								fis = null;
+							}
+						}
+						
+						if (isDebug) {
+							iLog.debug(THIS_METHOD, ">> END fetching unzipped and pack them to one zip, used: " + (System.currentTimeMillis() - start));
+						}
+						
+						FacesContext context = FacesContextUtil.getFacesContext();
+						HttpServletResponse response = (HttpServletResponse) context.getExternalContext().getResponse();
+						response.setContentType("application/octet-stream");//bug1134
+						response.setHeader("Content-Length", String.valueOf(tempZipFile.length()));
+						response.setHeader("Content-Disposition", "filename=\"all_files.zip\"");
+						
+						// DEV 1.4 -> 1.5
+						// Make sure OutputStream and FileInputStream are 
+						// ALWAYS close. Core logic is left unchanged.
+						OutputStream os = null;
+						
+						start = System.currentTimeMillis();
+						if (isDebug) {
+							iLog.debug(THIS_METHOD, ">> START writing the final zipped to HTTP response");
+						}
+						try {
+							os = new BufferedOutputStream(response.getOutputStream());
+							fis = new BufferedInputStream(new FileInputStream(tempZipFile));
+							int i;
+							while ((i = fis.read()) != -1) {
+								os.write(i);
+							}
+						} catch (IOException ioe) {
+							throw ioe;
+						} finally {
+							if (os != null) {
+								os.close();
+								os = null;
+							}
+							if (fis != null) {
+								fis.close();
+								fis = null;
+							}
+						}
+						if (isDebug) {
+							iLog.debug(THIS_METHOD, ">> END writing the final zipped to HTTP response, used: " + (System.currentTimeMillis() - start));
+						}
+						context.responseComplete();
+						
+						tempZipFile.delete();
+					}
+				}
+			} catch (Exception e) {
+				ErrorHandlingUtil.handleException(iLog, e, THIS_METHOD, null);
+			} finally {
+				if (ftClient.isConnected()) {
+					try {
+						ftClient.disconnect();
+					} catch (Exception e) {
+						ErrorHandlingUtil.handleException(iLog, e, THIS_METHOD, null);
+					}
+				}
+			}
+		}
+	}
+  
+  
+  
+  
+  public void onPreviewFile(){
+		final String THIS_METHOD = "onPreviewFile";
+		File temp = null;
+		try {
+			HttpServletRequest request =  FacesContextUtil.getHttpServletRequest();
+			String basePath = request.getSession().getServletContext().getRealPath("") + new File(request.getServletPath()).getParent();
+			delPdfTempFile(basePath);
+			String pdfOutPath = basePath + File.separator;
+			String pdfOutName = FILE_PREFIX + singleDownloadTO.getFileId() + userMB.getUser().getLoginId() + new Date().getTime();
+			ftClient.connect();
+			ftClient.changeDirectory(singleDownloadTO.getFileFolder());
+			File ftpFile = File.createTempFile("ftp", SUFFIX_ZIP);
+			ftClient.downloadFile(ftpFile.getCanonicalPath(), singleDownloadTO.getStorageFileName());
+			ZipFile zipFile = new ZipFile(ftpFile);
+			Enumeration<? extends ZipEntry> zipEntrys = zipFile.entries();
+			ZipEntry zipEntry = (ZipEntry) zipEntrys.nextElement(); 
+			String fileSuffix = "";
+			if (zipEntry.getName().indexOf(".") != -1) {
+				fileSuffix = zipEntry.getName().substring(zipEntry.getName().lastIndexOf("."));
+			}
+			temp = new File(pdfOutPath + pdfOutName + fileSuffix);
+			temp.createNewFile();
+			InputStream is = null;
+			OutputStream fos = null;
+			try {
+				is = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+				fos = new BufferedOutputStream(new FileOutputStream(temp));
+				int c;
+				while ((c = is.read()) != -1) {
+					fos.write(c);
+				}
+				fos.flush();
+					
+			} catch (IOException ioe) {
+				throw ioe;
+			} finally {
+				if (fos != null) {
+					fos.close();
+					fos = null;
+				}
+				if (is != null) {
+					is.close();
+					is = null;
+				}
+			}
+			zipFile.close();
+			ftpFile.delete();
+			File outPdf = PreviewPDFFileUtil.getPrevieeFile(temp, pdfOutPath);
+			pdfFile = outPdf.getName();
+			
+		} catch (Exception e) {
+			ErrorHandlingUtil.handleJsfMBExceptionErrorRedirect(iLog, e, THIS_METHOD, null);
+			//ErrorHandlingUtil.handleException(iLog, e, THIS_METHOD, null);
+		} finally {
+			if (ftClient.isConnected()) {
+				try {
+					ftClient.disconnect();
+				} catch (Exception e) {
+					if (iLog.isErrorEnabled()) {
+						iLog.error(THIS_METHOD, e.getMessage());
+					}
+					msgMB.addTO(new MsgTO(e));
+					msgMB.enableEnforceDisplay();
+				}
+			}
+			
+			if (temp != null && temp.exists()){
+				temp.delete();
+			}
+		}
+		
+	}
