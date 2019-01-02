@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>开始使用layui</title>
+  <link rel="stylesheet" href="../layui/css/layui.css">
+</head>
+<body>
+
+ <div class="layui-container">
+ 
+	<!-- 抽取单独页面  头部 -->
+ 	<div class="layui-row">
+	    <div class="layui-col-xs6">
+	      <div style="height: 80px;">6/12</div>
+	    </div>
+	    <div class="layui-col-xs6"style="margin-top: 40px;">
+	      <span >用户：<a href="">请先登录</a></span>
+	      <button class="layui-btn layui-btn-radius layui-btn-normal" style="margin-left: 100px;">登录</button>
+	      <button class="layui-btn layui-btn-radius layui-btn-warm"">注册</button>
+	    </div>
+  	</div>
+    <!--end 头部 -->
+ 
+	 <!-- 抽取单独页面  导航 -->
+	 <div >
+	 	<ul class="layui-nav">
+		  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-home">首页</i></a></li>
+		  <li class="layui-nav-item"><a href="">六合彩</li>
+		  <li class="layui-nav-item"><a href="">时时彩</a></li>
+		  <li class="layui-nav-item"><a href="">足彩</a></li>
+		  <li class="layui-nav-item"><a href="">棋牌</a></li>
+		  <li class="layui-nav-item">
+		    <a href="javascript:;">解决方案</a>
+		    <dl class="layui-nav-child">
+		      <dd><a href="">移动模块</a></dd>
+		      <dd><a href="">后台模版</a></dd>
+		      <dd class="layui-this"><a href="">选中项</a></dd>
+		      <dd><a href="">电商平台</a></dd>
+		    </dl>
+		  </li>
+		  <li class="layui-nav-item"><a href="">社区</a></li>
+		  <li class="layui-nav-item" style="float: right;"><a href="">忘记密码</a></li>
+		  <li class="layui-nav-item" style="float: right;"><a href="">安全退出</a></li>
+		</ul>
+	 </div>
+	 <!--end 导航 -->
+	 
+	 <!--抽取单独页面    内容 -->
+	 <div class="layui-row" style="margin-top: 5px;background-color: #f2f2f2 ">
+		 	<div class="layui-col-xs3" style="width: 220px;">
+		 		<ul class="layui-nav layui-nav-tree layui-inline" lay-filter="demo" style="margin-right: 10px; height: 1200px;">
+				  <li class="layui-nav-item layui-nav-itemed">
+				    <a href="javascript:;"><i class="layui-icon layui-icon-list">投注类型</i></a>
+				    <dl class="layui-nav-child">
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">特码</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正特码</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正码</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正码1-6</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">过关</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">连码</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">半波</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正特一肖/尾数</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">特码特肖/尾数</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">特码合肖</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正特生肖连</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正特尾数连</i></a></dd>
+				      <dd><a href="javascript:;"><i class="layui-icon layui-icon-more-vertical">正特全不中</i></a></dd>
+				    </dl>
+				  </li>
+				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-search">开奖查询</i></a></li>
+  				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-face-smile">中奖结果</i></a></li>
+  				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-log">下单历史</i></a></li>
+  				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-about">游戏规则</i></a></li>
+				</ul>
+		 	</div>
+		 	
+		 	<!-- 要抽取 详细功能页面 -->
+		 	<div class="layui-col-xs9">
+		 		<div class="layui-row" style="margin-top: 15px;height: 20px;">
+		 			<div class="layui-col-xs3"><i class="layui-icon layui-icon-diamond" style="float: left;">特码</i></div>
+		 			<div class="layui-col-xs3">期数：2019001</div>
+		 			<div class="layui-col-xs3">封盘时间：</div>
+		 			<div class="layui-col-xs3">倒计时：</div>
+		 		</div>
+		 		<div class="layui-row" style="height: 4px;background-color: #d2d2d2;margin-top: 4px;"></div>
+		 		<div class="layui-row">
+		 			<form class="layui-form" action="">
+		 				<table class="layui-table">
+		 					<colgroup>
+							    <col width="50">
+							    <col width="50">
+							    <col width="240">
+							    <col width="50">
+							    <col width="50">
+							    <col width="240">
+							    <col width="50">
+							    <col width="50">
+							    <col width="240">
+						  	</colgroup>
+						    <thead>
+			 					<tr>
+			 						<th>号码</th>
+			 						<th>赔率</th>
+			 						<th>金额</th>
+			 						<th>号码</th>
+			 						<th>赔率</th>
+			 						<th>金额</th>
+			 						<th>号码</th>
+			 						<th>赔率</th>
+			 						<th>金额</th>
+			 					</tr>
+						    </thead>
+						    <tbody>
+			 					<tr>
+			 						<td style="background-color: red">1</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">2</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">3</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">4</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">5</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">6</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">7</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">8</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">9</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">10</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">11</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">12</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">13</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">14</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">15</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">16</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">17</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">18</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">19</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">20</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">21</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">22</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">23</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">24</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">25</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">26</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">27</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">28</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">29</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">30</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">31</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">32</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">33</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">34</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">35</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">36</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">37</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">38</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">39</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">40</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">41</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">42</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">43</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">44</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">45</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td style="background-color: red">46</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">47</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 						<td style="background-color: red">48</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr><tr>
+			 						<td style="background-color: red">49</td>
+			 						<td>48.80</td>
+			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
+			 					</tr>
+			 					<tr>
+			 						<td colspan="2"><font size="4"><i class="layui-icon layui-icon-rmb" style="color: #FFB90F"></i><b>总下注</b></font></td>
+			 						<td colspan="7"><input type="text" name="totalMoney" id="totalMoney" placeholder="￥" autocomplete="off" class="layui-input" readonly="readonly"></td>
+			 					</tr>
+						    </tbody>
+		 				</table>
+		 			</form>
+		 			<div class="layui-row" align="center">
+		 				<button class="layui-btn layui-btn-radius">下单</button>
+		 				<button class="layui-btn layui-btn-radius layui-btn-warm">重置</button>
+		 			</div>
+		 		</div>
+		 	</div>
+		 	<!-- 抽取单独页面 -->
+	 </div>
+	 <!-- end 内容 -->
+	 
+	    <div class="layui-row" style="margin-top:3px;height: 70px; text-align:center;background-color: #eeeeee;">
+				<div align="center" style="padding-top: 35px;">
+					Copyright © 2019.1-2019.6 Join us
+				</div>
+		</div>
+	 <!-- <div class="layui-row">
+	 		<div class="layui-col-xs12">
+				<div align="center" style="padding-bottom: 10px";padding-top:5px;>Copyright ©
+					2019.1-2019.6 Join us</div>
+			</div>
+	 </div> -->
+ </div>
+<!-- 你的HTML代码 -->
+ 
+<script src="../layui/layui.js"></script>
+<script>
+layui.use(['element','form'], function(){
+	  var element = layui.element
+	  ,form=layui.form; //导航的hover效果、二级菜单等功能，需要依赖element模块
+	  
+	  //监听导航点击
+	  element.on('nav(demo)', function(elem){
+	    //console.log(elem)
+	    layer.msg(elem.text());
+	  });
+	});
+</script> 
+</body>
+</html>
