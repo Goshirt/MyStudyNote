@@ -12,15 +12,22 @@
  
 	<!-- 抽取单独页面  头部 -->
  	<div class="layui-row">
-	    <div class="layui-col-xs6">
-	      <div style="height: 80px;">6/12</div>
-	    </div>
-	    <div class="layui-col-xs6"style="margin-top: 40px;">
+	    <div class="layui-carousel" id="test1">
+		  <div carousel-item="">
+			    <div>条目1</div>
+			    <div>条目2</div>
+			    <div>条目3</div>
+			    <div>条目4</div>
+			    <div>条目5</div>
+  		  </div>
+		</div>
+  	</div>
+	   <!--  <div class="layui-col-xs6"style="margin-top: 40px;">
 	      <span >用户：<a href="">请先登录</a></span>
 	      <button class="layui-btn layui-btn-radius layui-btn-normal" style="margin-left: 100px;">登录</button>
 	      <button class="layui-btn layui-btn-radius layui-btn-warm"">注册</button>
-	    </div>
-  	</div>
+	      <span style="float: right;margin-top: 16px; margin-right: 40px;"><a href=""><font color="red">忘记密码</font></a></span>
+	    </div> -->
     <!--end 头部 -->
  
 	 <!-- 抽取单独页面  导航 -->
@@ -31,18 +38,23 @@
 		  <li class="layui-nav-item"><a href="">时时彩</a></li>
 		  <li class="layui-nav-item"><a href="">足彩</a></li>
 		  <li class="layui-nav-item"><a href="">棋牌</a></li>
-		  <li class="layui-nav-item">
-		    <a href="javascript:;">解决方案</a>
+		  
+		  <li class="layui-nav-item"><a href="">社区</a></li>
+		  <li class="layui-nav-item" style="float: right;">
+		    <a href="javascript:;"><i class="layui-icon layui-icon-form">订单中心</i></a>
 		    <dl class="layui-nav-child">
-		      <dd><a href="">移动模块</a></dd>
-		      <dd><a href="">后台模版</a></dd>
-		      <dd class="layui-this"><a href="">选中项</a></dd>
-		      <dd><a href="">电商平台</a></dd>
+		      <dd><a href=""><i class="layui-icon layui-icon-cart" >下单车</i></a></dd>
+		      <dd class="layui-this"><a href=""><i class="layui-icon layui-icon-log">历史订单</i></a></dd>
 		    </dl>
 		  </li>
-		  <li class="layui-nav-item"><a href="">社区</a></li>
-		  <li class="layui-nav-item" style="float: right;"><a href="">忘记密码</a></li>
-		  <li class="layui-nav-item" style="float: right;"><a href="">安全退出</a></li>
+		  <li class="layui-nav-item" style="float: right;">
+		    <a href="javascript:;"><i class="layui-icon layui-icon-user" >个人中心</i></a>
+		    <dl class="layui-nav-child">
+		      <dd class="layui-this"><a href=""><i class="layui-icon layui-icon-user" >个人信息</i></a></dd>
+		      <dd><a href=""><i class="layui-icon layui-icon-edit">修改密码</i></a></dd>
+		      <dd><a href=""><i class="layui-icon layui-icon-auz">安全退出</i></a></dd>
+		    </dl>
+		  </li>
 		</ul>
 	 </div>
 	 <!--end 导航 -->
@@ -71,7 +83,6 @@
 				  </li>
 				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-search">开奖查询</i></a></li>
   				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-face-smile">中奖结果</i></a></li>
-  				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-log">下单历史</i></a></li>
   				  <li class="layui-nav-item"><a href=""><i class="layui-icon layui-icon-about">游戏规则</i></a></li>
 				</ul>
 		 	</div>
@@ -294,15 +305,16 @@
 			 						<td><input type="text" name="price" placeholder="￥" autocomplete="off" class="layui-input"></td>
 			 					</tr>
 			 					<tr>
-			 						<td colspan="2"><font size="4"><i class="layui-icon layui-icon-rmb" style="color: #FFB90F"></i><b>总下注</b></font></td>
+			 						<td colspan="2"><font size="4"><i class="layui-icon layui-icon-rmb" style="color: #FFB90F"></i><b>合计(元)</b></font></td>
 			 						<td colspan="7"><input type="text" name="totalMoney" id="totalMoney" placeholder="￥" autocomplete="off" class="layui-input" readonly="readonly"></td>
 			 					</tr>
 						    </tbody>
 		 				</table>
 		 			</form>
 		 			<div class="layui-row" align="center">
-		 				<button class="layui-btn layui-btn-radius">下单</button>
-		 				<button class="layui-btn layui-btn-radius layui-btn-warm">重置</button>
+		 				<button class="layui-btn layui-btn-radius"><i class="layui-icon layui-icon-dollar">直接下单</i></button>
+		 				<button class="layui-btn layui-btn-radius"><i class="layui-icon layui-icon-cart" >加入下单车</i></button>
+		 				<button class="layui-btn layui-btn-radius layui-btn-warm"><i class="layui-icon layui-icon-refresh">重置</i></button>
 		 			</div>
 		 		</div>
 		 	</div>
@@ -312,29 +324,32 @@
 	 
 	    <div class="layui-row" style="margin-top:3px;height: 70px; text-align:center;background-color: #eeeeee;">
 				<div align="center" style="padding-top: 35px;">
-					Copyright © 2019.1-2019.6 Join us
+					  © 2019.1-2019.6 Join us
 				</div>
 		</div>
-	 <!-- <div class="layui-row">
-	 		<div class="layui-col-xs12">
-				<div align="center" style="padding-bottom: 10px";padding-top:5px;>Copyright ©
-					2019.1-2019.6 Join us</div>
-			</div>
-	 </div> -->
  </div>
 <!-- 你的HTML代码 -->
  
 <script src="../layui/layui.js"></script>
 <script>
-layui.use(['element','form'], function(){
+layui.use(['element','form','carousel'], function(){
 	  var element = layui.element
-	  ,form=layui.form; //导航的hover效果、二级菜单等功能，需要依赖element模块
+	  ,form=layui.form
+	  ,carousel=layui.carousel; //导航的hover效果、二级菜单等功能，需要依赖element模块
 	  
+	//常规轮播
+	  carousel.render({
+	    elem: '#test1'
+	    ,width: '100%'
+	   	,height: '120px'
+	    ,interval: 5000
+	  });
 	  //监听导航点击
 	  element.on('nav(demo)', function(elem){
 	    //console.log(elem)
 	    layer.msg(elem.text());
 	  });
+	  
 	});
 </script> 
 </body>
