@@ -104,8 +104,50 @@ redis有五种数据类型：1.string(字符串)、2.hash(散列类型)、3.list
     TTL key                               返回一个失效键剩余时间
     PERSIST key                           取消一个键设置的生存时间，使用SET或GETSET命令为键赋值也会同时清除键的生存时间
     
+    为了减轻服务器的压力，需要限制每个用户（以IP计）一段时间的最大访问量：
+    思路（1）是对每个用户使用一个名为“rate.limiting:用户IP”的字符串类型键，每次用户访问则使用INCR命令递增该键的键值，
+    如果递增后的值是1（第一次访问页面），则同时还要设置该键的生存时间为1分钟。这样每次用
+    户访问页面时都读取该键的键值，如果超过了100就表明该用户的访问频率超过了限制，需要
+    提示用户稍后访问。该键每分钟会自动被删除，所以下一分钟用户的访问次数又会重新计算，
+    也就达到了限制访问频率的目的。
+    isKeyExists=EXISTS rate.limiting: IP
+    if isKeyExists is 1
+        times=INCR rate.limiting: IP
+    if times＞100
+        print访问频率超过了限制，请稍后再试。
+        exit
+    else
+        MULTI
+        INCR rate.limiting: IP
+        EXPIRE keyName, 60
+        EXEC
     
-    
+    （2）粒度更小的控制方案。如果要精确地保证每分钟最多访问10次，需要记录下用户每次访问的时间。
+    因此对每个用户，我们使用一个列表类型的键来记录他最近10次访问博客的时间。一旦键
+    中的元素超过10个，就判断时间最早的元素距现在的时间是否小于1分钟。如果是则表示用户
+    最近1分钟的访问次数超过了10次；如果不是就将现在的时间加入到列表中，同时把最早的元素删除。
+        listLength=LLEN rate.limiting: IP
+        if listLength＜10
+            LPUSH rate.limiting: IP, now()
+        else
+            time=LINDEX rate.limiting: IP, -1
+            if now()- time＜60
+                print访问频率超过了限制，请稍后再试。
+            else
+                LPUSH rate.limiting: IP, now()
+                LTRIM rate.limiting: IP, 0, 9
+                
+      （3）教务网站要对全校所有学生的各个科目的成绩汇总排名，并在首页上显示前10名的学生姓名，由于计算过程较耗资源，
+      所以可以将结果使用一个Redis的字符串键缓存起来。由于学生成绩总在不断地变化，需要每隔两个小时就重新计算一次排名，
+      这可以通过给键设置生存时间的方式实现。每次用户访问首页时程序先查询缓存键是否存在，如果存在则直接使用缓存的值；
+      否则重新计算排名并将计算结果赋值给该键并同时设置该键的生存时间为两个小时。
+            rank=GET cache:rank
+            if not rank
+                rank=计算排名...
+                MUlTI
+                SET cache:rank, rank
+                EXPIRE cache:rank, 7200
+                EXEC
     
     
                                               
