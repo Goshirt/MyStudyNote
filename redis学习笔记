@@ -71,9 +71,38 @@ redis有五种数据类型：1.string(字符串)、2.hash(散列类型)、3.list
     spop key                 从集合中弹出一个元素
     
     
-  有序集合
+  有序集合（在集合的基础上为每一个元素加上了一个分数）：
     zadd key score member [score member]  在有序集合中添加一个或者多个元素以及该元素的分数，如果该key不存在则创建，如果该元素存在则更新分数
-    zscore key member        获取指定元素的分数
+    zscore key member                     获取指定元素的分数
+    zrange ket start stop [withscores]    按照元素分数从小到大的顺序返回下标start-stop范围的元素，下标从0开始，包含start，stop,
+                                          加上withscores时返回该元素的分数
+    ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]   按照元素分数从小到大的顺序返回分数在min和max之间（包含min和max）的元素
+                                                                  分数范围不包含端点值，可以在分数前加上“(”符号，
+                                                                  -inf 和+inf分别表示负无穷和正无穷
+                                                                  limit同sql的用法
+    ZRANGEBYSCORE scoreboard 80 (100                       可以含80分，但不包含100分
+    ZRANGEBYSCORE scoreboard (80 +inf                      得到所有分数高于80分（不包含80分）的人的名单
+    ZINCRBY key increment member                           给指定的key中的member元素增加increment分数
+    ZCARD key                             获得集合中元素的数量
+    ZCOUNT key min max                    获得指定分数范围內的元素个数
+    ZREM key member [member …]            删除一个或多个元素
+    ZREMRANGEBYRANK key start stop        按照元素分数从小到大的顺序（即索引0表示最小的值）删除处在指定排名范围内的所有元素
+    ZREMRANGEBYSCORE key min max          删除指定分数范围内的所有元素
+    ZRANK key member                      获得元素的排名，从小到大的排名
+    ZREVRANK key member                   获得元素的排名，从大到小的排名
+    
+    
+    
+    事务（不支持回滚）
+    redis＞MULTI                          开启事务，接下来的操作属于同一个事务
+    redis＞EXEC                           执行事务
+    redis＞WATCH key                      WATCH命令可以监控一个或多个键，一旦其中有一个键被修改（或删除），之后的事务就不会执行
+                                          监控一直持续到EXEC命令（事务中的命令是在EXEC之后才执行的，所以在MULTI命令后可以修改WATCH监控的键值）
+    
+    时效：
+    EXPIRE key seconds                    设置一个键的生存时间，单位是秒
+    TTL key                               返回一个失效键剩余时间
+    PERSIST key                           取消一个键设置的生存时间，使用SET或GETSET命令为键赋值也会同时清除键的生存时间
     
     
     
