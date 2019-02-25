@@ -1,0 +1,22 @@
+容器：
+  （1）Collection
+        List:按照插入顺序保存的一组元素
+            ArrayList:随机访问快，插入和移出慢
+            LinkedList:随机访问慢，插入移出快,可以实现栈的所有功能
+        Set:不能有重复的元素,对快速查找进行了优化
+            HashSet:散列表
+            TreeSet:存储在红黑树数据结构中，可以在构造函数中传递一个Comparator<T>进行排序
+            LinkedHashList:散列表，并且使用链表维护元素的插入顺序
+        Queue:按照排队规则来确定对象的产生顺序，先进先出
+   (2) Map
+   
+   
+ 迭代器Iterrator：
+    （1）使用方法iterator()要求容器返回一个Iterator.Iterator将准备好返回序列的第一个元素
+    （2）使用next()获得序列中是否还有元素
+    （3）使用hasNext（）检查序列中是否还有元素
+    （4）使用remove()将迭代器新返回的元素删除
+    
+ ListIterator:一个更加强大的Iterator的子类型，只能用于各种List类的访问，并且可以双向移动
+     listIterator()产生一个指向List开始处的ListIterator
+     listIterator(n)产生一个指向索引为n的元素处的ListIterator
