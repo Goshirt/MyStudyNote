@@ -20,3 +20,32 @@
  ListIterator:一个更加强大的Iterator的子类型，只能用于各种List类的访问，并且可以双向移动
      listIterator()产生一个指向List开始处的ListIterator
      listIterator(n)产生一个指向索引为n的元素处的ListIterator
+
+
+
+
+常见问题：
+    HashSet如何保证不重复
+      底层源码：HashSet的add方法（map是一个ransient类型的HashMap<E,Object>）：
+          public boolean add(E e) {
+            return map.put(e, PRESENT)==null;
+          }
+       而HashMap的put方法：
+          public V put(K key, V value) { 
+            if (key == null) return putForNullKey(value); 
+            int hash = hash(key.hashCode()); 
+            int i = indexFor(hash, table.length); 
+            for (Entry<K,V> e = table[i]; e != null; e = e.next) { 
+                Object k; 
+                if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
+                    V oldValue = e.value; e.value = value; 
+                    e.recordAccess(this); return oldValue; 
+                 } 
+             } 
+             modCount++; addEntry(hash, key, value, i); return null; 
+         }
+        通过put方法的for循环可以看到是遍历整个表，然后通过hash值以及equals（）判断新添加的元素是否已经存在
+        如果hash码值相同，且equles判断相等，说明元素已经存在，不存
+        如果hash码值相同，且equles判断不相等，说明元素不存在，存
+        
+     
