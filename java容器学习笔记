@@ -48,4 +48,25 @@
         如果hash码值相同，且equles判断相等，说明元素已经存在，不存
         如果hash码值相同，且equles判断不相等，说明元素不存在，存
         
+        
+        
+        TreeSet怎么保证数据的顺序
+          当使用TreeSet的add方法是，add()的元素必须实现了Comparable接口，否则会报错
+          因为保证数据的顺序是通过Comparable实现的
+          例如添加persion实体
+          public class Person implements Comparable<Person> {
+              private String name;
+              private int age;
+              ...
+              public int compareTo(Person o) {
+                  return 0;                //当compareTo方法返回0的时候集合中只有一个元素
+                  return 1;                //当compareTo方法返回正数的时候集合会怎么存就怎么取
+                  return -1;                //当compareTo方法返回负数的时候集合会倒序存储
+              }
+          }
+          为什么返回0，只会存一个元素，返回-1会倒序存储，返回1会怎么存就怎么取呢？原因在于TreeSet底层其实是一个二叉树机构，且每插入一个新元素(第一个除外)都会调用```compareTo()```方法去和上一个插入的元素作比较，并按二叉树的结构进行排列。
+            1. 如果将```compareTo()```返回值写死为0，元素值每次比较，都认为是相同的元素，这时就不再向TreeSet中插入除第一个外的新元素。所以TreeSet中就只存在插入的第一个元素。
+            2. 如果将```compareTo()```返回值写死为1，元素值每次比较，都认为新插入的元素比上一个元素大，于是二叉树存储时，会存在根的右侧，读取时就是正序排列的。
+            3. 如果将```compareTo()```返回值写死为-1，元素值每次比较，都认为新插入的元素比上一个元素小，于是二叉树存储时，会存在根的左侧，读取时就是倒序序排列的。
+        
      
