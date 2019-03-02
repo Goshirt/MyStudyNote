@@ -2,11 +2,11 @@
   （1）Collection
         List:按照插入顺序保存的一组元素
             ArrayList:随机访问快，插入和移出慢
-            LinkedList:随机访问慢，插入移出快,可以实现栈的所有功能
+            LinkedList:随机访问慢，插入移出快,可以实现栈的所有功能   https://juejin.im/post/5aa299c1518825557b4c5806#heading-15
         Set:不能有重复的元素,对快速查找进行了优化
             HashSet:散列表
             TreeSet:存储在红黑树数据结构中，可以在构造函数中传递一个Comparator<T>进行排序
-            LinkedHashList:散列表，并且使用链表维护元素的插入顺序
+            LinkedHashSet:散列表，并且使用链表维护元素的插入顺序
         Queue:按照排队规则来确定对象的产生顺序，先进先出
             LinkedBlockingQueue的容量是没有上限的（说的不准确，在不指定时容量为Integer.MAX_VALUE，
                 不要然的话在put时怎么会受阻呢），但是也可以选择指定其最大容量，它是基于链表的队列，此队列按 FIFO（先进先出）排序元素。
@@ -23,7 +23,7 @@
                 如果延迟都还没有期满，则队列没有头部，并且poll将返回null。当一个元素的 getDelay(TimeUnit.NANOSECONDS) 方法返回一个小于或等于零的值时，
                 则出现期满，poll就以移除这个元素了。此队列不允许使用 null 元素。
    (2) Map
-   
+        HashMap:K-V存储     https://juejin.im/post/5ac83fa35188255c5668afd0#heading-1
    
  迭代器Iterrator：
     （1）使用方法iterator()要求容器返回一个Iterator.Iterator将准备好返回序列的第一个元素
