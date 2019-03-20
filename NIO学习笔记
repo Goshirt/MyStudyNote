@@ -285,3 +285,40 @@
           }
      注意每次迭代末尾的 keyIterator.remove() 调用。Selector 不会自己从已选择键集中移除 SelectionKey 实例。必须在处理完通道时自己移除。
     下次该通道变成就绪时，Selector 会再次将其放入已选择键集中。
+    
+    实例：使用Selector创建一个非阻塞的服务器
+    public class EchoServer {
+    public static void main(String[] args) throws IOException{
+        int ports[]={8001,8002,8003};
+        Selector selector = Selector.open();//打开一个选择器
+        for(int i=0;i<ports.length;i++){
+            ServerSocketChannel serverSocketChannel= ServerSocketChannel.open();//打开服务器套接字通道
+            serverSocketChannel.configureBlocking(false);//服务器配置为非阻塞
+            ServerSocket serverSocket = serverSocketChannel.socket();//检索与此通道关联的服务器套接字
+            InetSocketAddress inetSocketAddress = new InetSocketAddress(ports[i]);//实例化监听地址
+            serverSocket.bind(inetSocketAddress);//绑定地址
+            //注册选择器，相当于使用accept()方法接收
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+            System.out.println("服务器在{0}端口监听"+ports[i]);
+        }
+        
+        while(selector.select()>0){
+            Set<SelectionKey> readyKeys = selector.selectedKeys(); //获得selected-keys集合
+            Iterator<SelectionKey> it = readyKeys.iterator();
+            while(it.hasNext()){
+                SelectionKey key =it.next();//取出一个SelectionKey
+                if(key.isAcceptable()){
+                    ServerSocketChannel server = (ServerSocketChannel) key.channel();
+                    SocketChannel client = server.accept();  //接收新连接
+                    client.configureBlocking(false);
+                    ByteBuffer outBuffer = ByteBuffer.allocate(1024);//开辟缓冲区
+                    outBuffer.put(("当前时间为: "+new Date()).getBytes());
+                    outBuffer.flip();
+                    client.write(outBuffer);
+                    client.close();
+                }
+            }//end while
+            readyKeys.clear();
+        }//end while
+    }
+}
