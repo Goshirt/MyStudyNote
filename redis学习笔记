@@ -104,6 +104,50 @@ redis有五种数据类型：1.string(字符串)、2.hash(散列类型)、3.list
     TTL key                               返回一个失效键剩余时间
     PERSIST key                           取消一个键设置的生存时间，使用SET或GETSET命令为键赋值也会同时清除键的生存时间
     
+    
+    Redis淘汰机制：（从已有缓存中按照淘汰机制删除一些数据）
+        首先使用Redis淘汰机制需要先设置maxmemory，只有当已使用内存 >= maxmemory 才触发淘汰机制
+        
+        每一个 Redis 对象都会设置相应的 lru，即最近访问的时间，每一次访问数据的时候，会更新 redisObject.lru
+        Redis 数据集数据结构中保存了键值对过期时间的表，即 server.expires，在使用 SET 命令的时候，就有一个键值对超时时间的选项
+        
+        volatile-lru：从已设置过期时间的数据集（server.expires）中挑选最近最少使用的数据淘汰
+                      （并不保证是所有数据中的最近最少使用，而是随机挑选的一些数据中的最近最少使用）
+                      
+        volatile-ttl：从已设置过期时间的数据集（server.expires）中挑选将要过期的数据淘汰
+                        （并不保证是所有数据中的 ttl 最大的键值对，而是随机挑选的一些数据中的ttl 最大的键值对）
+                        
+        volatile-random：从已设置过期时间的数据集（server.expires）中任意选择数据淘汰
+        
+        allkeys-lru：从数据集（server.dict）中挑选最近最少使用的数据淘汰
+        
+        allkeys-random：从数据集（server.dict）中任意选择数据淘汰
+        
+        noeviction：禁止驱逐数据，当内存使用达到阈值的时候，所有引起申请内存的命令会报错
+        
+    Redis数据持久化:(Redis 中的数据从内存中 dump 到磁盘)
+    
+        RDB:可以定时备份内存中的数据集。服务器启动的时候，可以从 RDB 文件中恢复数据集
+            当前进程执行
+            后台执行（BGSAVE）:是 fork 出一个子进程，把内存中的数据集整个 dump 到硬盘上
+            
+        AOF:可以记录服务器的所有写操作。在服务器重新启动的时候，会把所有的写操作重新执行一遍，从而实现数据备份。
+            当写操作集过大（比原有的数据集还大），Redis 会重写写操作集。
+            
+            后台执行:fork 一个子进程，主进程仍进行服务，子进程执行AOF 持久化，数据被dump 到磁盘上。与 RDB 不同的是，后台子进程持久化过程中，
+                    主进程会记录期间的所有数据变更（主进程还在服务），并存储在 server.aof_rewrite_buf_blocks 中；
+                    后台子进程结束后，Redis 更新缓存追加到 AOF 文件中，是 RDB 持久化所不具备的
+            边服务边备份
+            
+        
+       订阅发布机制
+            频道（channel）订阅: CA（client A）向服务器订阅了频道 news，当 CB 向 news 发布消息的时候，CA 便能收到
+            
+            glob-style 模式（pattern）频道订阅: CA（client A）向服务器订阅了频道*.news,
+                                                当 CB 向 China.news 发布消息的时候，CA 能收到
+                                                当 CB 向 America.news 发布消息的时候，CA 能收到
+                                                当 CB 向 AV.news 发布消息的时候，CA 便能收到
+    
     为了减轻服务器的压力，需要限制每个用户（以IP计）一段时间的最大访问量：
     思路（1）是对每个用户使用一个名为“rate.limiting:用户IP”的字符串类型键，每次用户访问则使用INCR命令递增该键的键值，
     如果递增后的值是1（第一次访问页面），则同时还要设置该键的生存时间为1分钟。这样每次用
