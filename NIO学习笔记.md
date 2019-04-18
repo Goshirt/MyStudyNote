@@ -1,7 +1,7 @@
 ## 通道Channel
-      既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。
-      通道可以异步地读写。
-      通道中的数据总是要先读到一个 Buffer，或者总是要从一个 Buffer 中写入。
+    既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。
+    通道可以异步地读写。
+    通道中的数据总是要先读到一个 Buffer，或者总是要从一个 Buffer 中写入。
      
 ### 分类：
 * FileChannel 从文件中读写数据。
@@ -83,22 +83,22 @@
     ByteBuffer buf = ByteBuffer.allocate(48);
     int bytesRead = inChannel.read(buf);
     while (bytesRead != -1) {
-    System.out.println(&quot;Read &quot; + bytesRead);
-    buf.flip();
-    while(buf.hasRemaining()){
-    System.out.print((char) buf.get());
-    }
-    buf.clear();
-    bytesRead = inChannel.read(buf);
+        System.out.println(&quot;Read &quot; + bytesRead);
+        buf.flip();
+        while(buf.hasRemaining()){
+            System.out.print((char) buf.get());
+        }
+        buf.clear();
+        bytesRead = inChannel.read(buf);
     }
     aFile.close();
             
      
 
 ## 管道Pipe
-      管道是 2 个线程之间的单向数据连接。Pipe有一个 source 通道和一个 sink 通道。数据会被写到 sink 通道，从 source 通道读取
-      创建管道：
-            Pipe pipe = Pipe.open();
+    管道是 2 个线程之间的单向数据连接。Pipe有一个 source 通道和一个 sink 通道。数据会被写到 sink 通道，从 source 通道读取
+    创建管道：
+    Pipe pipe = Pipe.open();
 ### 向管道写数据：
     Pipe.SinkChannel sinkChannel = pipe.sink();
     String newData = "New String to write to file..." + System.currentTimeMillis();
@@ -287,5 +287,5 @@
             }//end while
             readyKeys.clear();
         }//end while
-    }
-}
+     }
+   }
