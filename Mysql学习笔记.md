@@ -117,7 +117,7 @@
    7. Federated:
    * 提供了访问远程 MySQL 服务器上表的方法
    * 本地不存储数据，数据全部放在远程服务器上
-   存储引擎的选择：首选Innodb 
+存储引擎的选择：首选Innodb 
        
 ## MyISAM和InnoDB引擎的区别?
 * MyISAM 不支持外键，而 InnoDB 支持
