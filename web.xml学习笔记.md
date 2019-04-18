@@ -1,7 +1,7 @@
 ## 加载顺序 ： 
     ServletContext -> context-param -> listener -> filter -> servlet
 ## 标签
-### <display-name>
+### display-name
   > Web应用名称,用于标记这个特定的Web应用的名称
 ### discription
   > Web应用描述
