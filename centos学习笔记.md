@@ -101,7 +101,7 @@ Linux下的根目录是:/
 	利用刚刚设置的密码登录
 	mysql -u root -p 后输入密码
 	ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx'; 修改密码
-	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'Helmet2018@' WITH GRANT OPTION; 允许远程登录
+	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'xxx' WITH GRANT OPTION; 允许远程登录
 	firewall-cmd --zone=public --add-port=3306/tcp --permanent 开放3306端口 如果报错FirewallD is not running
 	输入 systemctl status firewalld 查看防火墙是dead状态
 	firewall-cmd --list-ports   		查看开放的端口
