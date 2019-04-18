@@ -85,8 +85,8 @@ Linux下的根目录是:/
 
 
 ## centos 文件夹，文件 名称乱码解决办法
-1、安装convmv    yum install convmv
-2、批量递归修改当前目录下的文件名格式    convmv -f GBK -t UTF-8 -r --notest ./*
+	1、安装convmv    yum install convmv
+	2、批量递归修改当前目录下的文件名格式    convmv -f GBK -t UTF-8 -r --notest ./*
 
 
 ## 安装mysql后登录mysql 无法登录时
