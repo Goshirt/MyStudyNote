@@ -1,13 +1,13 @@
 ## 加载顺序 ： 
     ServletContext -> context-param -> listener -> filter -> servlet
 ### 标签
-1. <display-name>
+1. display-name
   > Web应用名称,用于标记这个特定的Web应用的名称
-2. <discription>
+2. discription
   > Web应用描述
-3. <context-param>
+3. context-param
   > 上下文参数，用于向Servlet+Context提供键值对，即应用程序上下文信息。后续的listener，filter在初始化时会用到这些上下文信息。在servlet里面可以通过getServletContext().getInitParameter("context/param")获取。
-4. <filter>
+4. filter
   > 过滤器,Filter接口中有一个doFilter方法，当开发人员编写好Filter，并配置对哪个web资源进行拦截后，WEB服务器每次在调用web资源的service方法之前,都会先调用一下filter的doFilter方法，因此，在该方法内编写代码可达到如下目的：
   （1）调用目标资源之前，让一段代码执行。
   （2）是否调用目标资源（即是否让用户访问web资源）。
@@ -44,7 +44,7 @@ web服务器在调用doFilter方法时，会传递一个filterChain对象进来�
         Enumeration getInitParameterNames();//返回过滤器的所有初始化参数的名字的枚举集合。 
         public ServletContext getServletContext();//返回Servlet上下文对象的引用。
 
-5. <listerner>：监听器
+5. listerner
   > 监听器Listener就是在application,session,request三个对象创建、销毁或者往其中添加修改删除属性时自动执行代码的功能组件
 主要有三种：
     * ServletContext监听
@@ -94,8 +94,10 @@ web服务器在调用doFilter方法时，会传递一个filterChain对象进来�
                 public String getName();//得到属性名称
                 public Object getValue();//取得属性的值
 
-6. <servlet>：运行在服务器端的小程序
+6. servlet
+> 运行在服务器端的小程序
+7. session-config
+> 会话超时配置，单位min
 
-7. <session-config>：会话超时配置，单位min
-
-8. <welcome-file-list>:欢迎首页
+8. welcome-file-list
+> 欢迎首页
