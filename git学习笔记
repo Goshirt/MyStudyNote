@@ -59,27 +59,20 @@ git log --pretty=format:"%h - %an, %ar : %s"      定制要显示的记录格式
 %s	提交说明
 
 
-git rm		从 Git 中移除某个文件，就必须要从已跟踪文件清单中移除（确切地说，是从暂存区域		移除）以后就不会出现在未跟踪文件清单中了
+git rm		从 Git 中移除某个文件，就必须要从已跟踪文件清单中移除（确切地说，是从暂存区域移除）以后就不会出现在未跟踪文件清单中了
 
 git rm --cached		让文件保留在磁盘，但是并不想让 Git 继续跟踪
 
 git mv file_from file_to	在 Git 中对文件改名
 
 
-cat .gitignore		创建一个名为 .gitignore 的文件，该文件可以列出被git忽略管理的文件格			式，git会自动读取该文件的内容
-
-
-		文件 .gitignore 的格式规范如下：
-
-    			所有空行或者以 ＃ 开头的行都会被 Git 忽略。
-
-    			可以使用标准的 glob 模式匹配。
-
-   			 匹配模式可以以（/）开头防止递归。
-
-   			 匹配模式可以以（/）结尾指定目录。
-
-    			要忽略指定模式以外的文件或目录，可以在模式前加上惊叹号（!）取反。
+cat .gitignore		创建一个名为 .gitignore 的文件，该文件可以列出被git忽略管理的文件格式，git会自动读取该文件的内容
+			文件 .gitignore 的格式规范如下：
+				所有空行或者以 ＃ 开头的行都会被 Git 忽略。
+				可以使用标准的 glob 模式匹配。
+				 匹配模式可以以（/）开头防止递归。
+				 匹配模式可以以（/）结尾指定目录。
+				要忽略指定模式以外的文件或目录，可以在模式前加上惊叹号（!）取反。
 
 所谓的 glob 模式是指 shell 所使用的简化了的正则表达式。 星号（*）匹配零个或多个任意字符；[abc] 匹配任何一个列在方括号中的字符（这个例子要么匹配一个 a，要么匹配一个 b，要么匹配一个 c）；问号（?）只匹配一个任意字符；如果在方括号中使用短划线分隔两个字符，表示所有在这两个字符范围内的都可以匹配（比如 [0-9] 表示匹配所有 0 到 9 的数字）。 使用两个星号（*) 表示匹配任意中间目录，比如`a/**/z` 可以匹配 a/z, a/b/z 或 `a/b/c/z`等。
 
@@ -90,7 +83,7 @@ git reflog 			查看历史命令，也可以获取版本号
 
 git diff HEAD -- xxx    	命令可以查看指定文件工作区和版本库里面最新版本的区别
 
-git diff 			工作目录中当前文件和暂存区域快照之间的差异， 也就是修改之后					还没有暂存起来的变化内容。
+git diff 			工作目录中当前文件和暂存区域快照之间的差异， 也就是修改之后还没有暂存起来的变化内容。
  
 
 git diff -- cached 		查看已经暂存起来的变化
@@ -111,7 +104,9 @@ git remote show 		查看某一个远程仓库的更多信息
 
 
 
-git commit --amend 		撤消上一次的提交操作  此命令将使用当前的暂存区域快照提交。如				果刚才提交完没有作任何改动，直接运行此命令的话，相当于有机会				重新编辑提交说明，但将要提交的文件快照和之前的一样。
+git commit --amend 		
+	撤消上一次的提交操作  此命令将使用当前的暂存区域快照提交。如	果刚才提交完没有作任何改动，直接运行此命令的话，
+	相当于有机会重新编辑提交说明，但将要提交的文件快照和之前的一样。
 
 
 git reset HEAD fileName.  	取消暂存区域中的文件
@@ -124,12 +119,14 @@ git branch name           创建新分支
 git checkout name         切换到指定分支，切换前最好提交暂存区，确保暂存区干净
 
 git merge name            将指定分支合并到当前分支
-当合并两个分支，如果两个分支对同一个文件同一地方都进行了修改，会出现冲突时会显示（index.html文件有冲突），然后打开该文件会有冲突地方的标记
-Auto-merging index.html
-CONFLICT (content): Merge conflict in index.html
-Automatic merge failed; fix conflicts and then commit the result.
-在文件中会有这表示 HEAD 所指示的当前分支版本（也就是你的 master 分支所在的位置，因为你在运行 merge 命令的时候已经检出到了这个分支）在这个区段的上半部分（======= 的上半部分），而 被合并 分支所指示的版本在 ======= 的下半部分。 为了解决冲突，你必须选择使用由 ======= 分割的两部分中的一个，或者你也可以自行合并这些内容。手动进入解决冲突文件，然后使用git add 暂存，当暂存后提交
-提交后就会完成合并工作
+	当合并两个分支，如果两个分支对同一个文件同一地方都进行了修改，会出现冲突时会显示（index.html文件有冲突），然后打开该文件会有冲突地方的标记
+	Auto-merging index.html
+	CONFLICT (content): Merge conflict in index.html
+	Automatic merge failed; fix conflicts and then commit the result.
+	在文件中会有这表示 HEAD 所指示的当前分支版本（也就是你的 master 分支所在的位置，因为你在运行 merge 命令的时候已经检出到了这个分支）
+	在这个区段的上半部分（======= 的上半部分），而 被合并 分支所指示的版本在 ======= 的下半部分。 为了解决冲突，
+	你必须选择使用由 ======= 分割的两部分中的一个，或者你也可以自行合并这些内容。手动进入解决冲突文件，然后使用git add 暂存，当暂存后提交
+	提交后就会完成合并工作
 
 git branch -d name        删除指定分支
 
@@ -137,7 +134,9 @@ git branch  		显示所有的分支
 
 git branch -v		查看每一个分支的最后一次提交
 
-git branch --merged   	查看哪些分支已经合并到当前分支，现在看到它在列表中。 在这个列表中分支			名字前没有 * 号的分支通常可以使用 git branch -d 删除掉；你已经将它们			的工作整合到了另一个分支，所以并不会失去任何东西。
+git branch --merged   	
+	查看哪些分支已经合并到当前分支，现在看到它在列表中。 在这个列表中分支名字前没有 * 号的分支通常可以使用 
+	git branch -d 删除掉；你已经将它们的工作整合到了另一个分支，所以并不会失去任何东西。
 
 git branch --no-merged	  当前分支所有包含未合并工作的分支
 
@@ -145,11 +144,17 @@ git push origin master   将当前的master分支推送到origin服务器，如�
 
 git push origin --delete serverfix     删除远程服务器的serverfix分支
 
-git rebase master    将当前的分支的修改复制到master分支，然后再使用merge，和使用 merge 命令		     两个分支产生的结果一样，但是使用变基的好处使得提交历史更加整洁，一个经过		     变基的分支的历史记录时会发现，尽管实际的开发工作是并行的，但它们看上				     去就像是串行的一样，提交历史是一条直线没有分叉。目的是为		     		     了确保在向远程分支推送时能保持提交历史的整洁
+git rebase master    
+	将当前的分支的修改复制到master分支，然后再使用merge，和使用 merge 命令两个分支产生的结果一样，
+	但是使用变基的好处使得提交历史更加整洁，一个经过变基的分支的历史记录时会发现，尽管实际的开发工作是并行的，但它们看上去就像是串行的一样，
+	提交历史是一条直线没有分叉。目的是为了确保在向远程分支推送时能保持提交历史的整洁
 
 
 git rebase --onto master server client
-			以上命令的意思是：“取出 client 分支，找出处于 client 分支和 server 			分支以及master分支的共同祖先之后的修改，然后把它们在 master 分支上重			        放一遍”。git 分支3.6有详细讲解
+	以上命令的意思是：“取出 client 分支，找出处于 client 分支和 server 分支以及master分支的共同祖先之后的修改，
+	然后把它们在 master 分支上重放一遍”。git 分支3.6有详细讲解
 			
 			
-git config --global core.autocrlf true   当在Windows中使用git add 出现warning: LF will be replaced by CRLF in 问题时，可以使用该命令，这是因为不同系统对于换行符号的定义不一样出现的问题
+git config --global core.autocrlf true  
+	当在Windows中使用git add 出现warning: LF will be replaced by CRLF in 问题时，可以使用该命令，
+	这是因为不同系统对于换行符号的定义不一样出现的问题
