@@ -90,47 +90,47 @@ Linux下的根目录是:/
 
 
 ## 安装mysql后登录mysql 无法登录时
-vi /etc/my.cnf/ 
-在文件末尾添加  skip-grant-tables 保存退出
-登录  mysql -u root 进入mysql
-use mysql
-update user set authentication_string = password("123456") where user="root";
-flush privileges;
-exit
-进入 vi /etc/my.cnf/  删除前面添加的skip-grant-tables 保存退出
-利用刚刚设置的密码登录
-mysql -u root -p 后输入密码
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'Helmet2018@'; 修改密码
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'Helmet2018@' WITH GRANT OPTION; 允许远程登录
-firewall-cmd --zone=public --add-port=3306/tcp --permanent 开放3306端口 如果报错FirewallD is not running
-输入 systemctl status firewalld 查看防火墙是dead状态
-firewall-cmd --list-ports   		查看开放的端口
-开启防火墙 systemctl start firewalld 开启防火墙后再开放3306端口。(服务器重启后会关闭防火墙)
-修改mysql默认编码，进入配置文件 vi /etc/my.cnf/
-在Remove leading  前面添加两行内容：
-character_set_server=utf8
-init_connect='SET NAMES utf8' 保存并退出
-重启mysql   systemctl restart mysqld
-然后进入mysql 检查一下编码，检查编码语句：show variables like '%character%'; 全显示为utf-8成功
+	vi /etc/my.cnf/ 
+	在文件末尾添加  skip-grant-tables 保存退出
+	登录  mysql -u root 进入mysql
+	use mysql
+	update user set authentication_string = password("123456") where user="root";
+	flush privileges;
+	exit
+	进入 vi /etc/my.cnf/  删除前面添加的skip-grant-tables 保存退出
+	利用刚刚设置的密码登录
+	mysql -u root -p 后输入密码
+	ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx'; 修改密码
+	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'Helmet2018@' WITH GRANT OPTION; 允许远程登录
+	firewall-cmd --zone=public --add-port=3306/tcp --permanent 开放3306端口 如果报错FirewallD is not running
+	输入 systemctl status firewalld 查看防火墙是dead状态
+	firewall-cmd --list-ports   		查看开放的端口
+	开启防火墙 systemctl start firewalld 开启防火墙后再开放3306端口。(服务器重启后会关闭防火墙)
+	修改mysql默认编码，进入配置文件 vi /etc/my.cnf/
+	在Remove leading  前面添加两行内容：
+	character_set_server=utf8
+	init_connect='SET NAMES utf8' 保存并退出
+	重启mysql   systemctl restart mysqld
+	然后进入mysql 检查一下编码，检查编码语句：show variables like '%character%'; 全显示为utf-8成功
 
 
 ## maven项目需要在centos中安装maven
-wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz 下载maven，下载到根目录的
-解压并移动到/home/maven/
-tar -zxvf apache-maven-3.3.9-bin.tar.gz
-配置maven路径，先进入配置文件
-vi /etc/profile
-在文件末尾添加
-export M2_HOME=/home/maven/apache-maven-3.3.9
-export PATH=${M2_HOME}/bin:${PATH}
-系统级别环境变量配置生效
-source /etc/profile
+	wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz 下载maven，下载到根目录        的
+	解压并移动到/home/maven/
+	tar -zxvf apache-maven-3.3.9-bin.tar.gz
+	配置maven路径，先进入配置文件
+	vi /etc/profile
+	在文件末尾添加
+	export M2_HOME=/home/maven/apache-maven-3.3.9
+	export PATH=${M2_HOME}/bin:${PATH}
+	系统级别环境变量配置生效
+	source /etc/profile
 
 ## centos中Tomcat输出控制台
-进入tomcat安装目录下的logs文件夹 动态打印日志信息
-tail -f catalina.out 
-启动Tomcat
-安装目录/bin/startup.sh
+	进入tomcat安装目录下的logs文件夹 动态打印日志信息
+	tail -f catalina.out 
+	启动Tomcat
+	安装目录/bin/startup.sh
 
 
 
