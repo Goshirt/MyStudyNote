@@ -1,4 +1,4 @@
-服务提供者的简单配置provider.xml
+# 服务提供者的简单配置provider.xml
     <?xml version="1.0" encoding="UTF-8"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,7 +24,7 @@
         <bean id="demoService" class="org.apache.dubbo.demo.provider.DemoServiceImpl" />
     </beans>
     
-服务消费者的简单配置consumer.xml
+# 服务消费者的简单配置consumer.xml
     <?xml version="1.0" encoding="UTF-8"?>
     <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -44,7 +44,7 @@
         <dubbo:reference id="demoService" interface="org.apache.dubbo.demo.DemoService" />
     </beans>
     
- 启动时检查：
+ # 启动时检查：
     Dubbo 缺省会在启动时检查依赖的服务是否可用，不可用时会抛出异常，阻止 Spring 初始化完成，以便上线时，能及早发现问题，默认 check="true"
     关闭某个服务启动时时的检查（如果没有服务提供者报错）：
       <dubbo:reference interface="com.foo.BarService" check="false" />
@@ -54,7 +54,7 @@
       <dubbo:registry check="false" />
       
       
- 集群容错：
+# 集群容错：
  
       配置集群的方式：
       <dubbo:service cluster="failsafe" />
@@ -92,7 +92,7 @@
           广播调用所有提供者，逐个调用，任意一台报错则报错 。通常用于通知所有提供者更新缓存或日志等本地资源信息。
           
           
-   负载均衡
+  # 负载均衡
    
        配置负载均衡的方式：
        
@@ -130,7 +130,7 @@
               缺省用 160 份虚拟节点，如果要修改，请配置 <dubbo:parameter key="hash.nodes" value="320" />
               
               
-   并发控制：
+  # 并发控制：
       服务端通过executes属性控制
       并发执行数不能超过10
         <dubbo:service interface="com.foo.BarService" executes="10" />
