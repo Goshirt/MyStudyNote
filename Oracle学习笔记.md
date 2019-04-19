@@ -130,22 +130,22 @@
 					close cu_emp;
 			end;
 
-		11.使用 tableName.attr%type 动态的指定变量的类型与表字段的类型一样
-		set serverout on;
-			declare cursor cu_emp is
-							select empno,ename,sal from emp;
-				e_no emp.empno%type;
-				e_name emp.ename%type;
-				e_sal emp.sal%type;
-			begin
-				open cu_emp;
-				fetch cu_emp into e_no,e_name,e_sal;
-				while cu_emp%found loop
-							dbms_output.put_line('编号'|| e_no || '姓名'|| e_name ||'基本薪资'|| e_sal);
-							fetch cu_emp into e_no,e_name,e_sal;
-						end loop;
-					close cu_emp;
-			end;
+	11.使用 tableName.attr%type 动态的指定变量的类型与表字段的类型一样
+	set serverout on;
+		declare cursor cu_emp is
+						select empno,ename,sal from emp;
+			e_no emp.empno%type;
+			e_name emp.ename%type;
+			e_sal emp.sal%type;
+		begin
+			open cu_emp;
+			fetch cu_emp into e_no,e_name,e_sal;
+			while cu_emp%found loop
+						dbms_output.put_line('编号'|| e_no || '姓名'|| e_name ||'基本薪资'|| e_sal);
+						fetch cu_emp into e_no,e_name,e_sal;
+					end loop;
+				close cu_emp;
+		end;
           
           
 	12.使用 tabkeName%rowtype 动态的指定一个变量，并且该变量为表所有的字段的类型，相当于row,减少变量的定义
@@ -291,25 +291,25 @@
 				end;
 			end addBook3;
 
-		21.触发器
-			 表级触发器
-			 create trigger tr_book
-		before insert
-		on t_book     //在对该表进行插入时触发
-		begin
-			if user!='cc' then   //如果用户名不是cc,触发输出语句
-				raise_application_error(-20001,'权限不足');
-			end if;
-		end;
+	21.触发器
+		 表级触发器
+		 create trigger tr_book
+	before insert
+	on t_book     //在对该表进行插入时触发
+	begin
+		if user!='cc' then   //如果用户名不是cc,触发输出语句
+			raise_application_error(-20001,'权限不足');
+		end if;
+	end;
 
-		 create trigger tr_book2
-		before update or delete
-		on t_book    //在对表进行更新时触发
-		begin
-			if user!='CC' then
-				raise_application_error(-20001,'权限不足');
-			end if;
-		end;
+	 create trigger tr_book2
+	before update or delete
+	on t_book    //在对表进行更新时触发
+	begin
+		if user!='CC' then
+			raise_application_error(-20001,'权限不足');
+		end if;
+	end;
 
 
 	create trigger tr_book_log
