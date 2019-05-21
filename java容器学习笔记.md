@@ -48,6 +48,19 @@
     （2）使用next()获得序列中是否还有元素
     （3）使用hasNext（）检查序列中是否还有元素
     （4）使用remove()将迭代器新返回的元素删除
+### LinkedHashMap构建一个简单的LRU
+    1.新建一个类继承LinkedHashMap
+    2.调用父类的构造方法
+    > super(maxCapacity, DEFAULT_LOAD_FACTOR, true);  
+    2.重写removeEldestEntry（）方法
+    >  示例用法：此重写允许映射增加到 100 个条目，然后每次添加新条目时删除最旧的条目，始终维持 100 个条目的稳定状态。 
+
+     private static final int MAX_ENTRIES = 100;
+
+     protected boolean removeEldestEntry(Map.Entry eldest) {
+        return size() > MAX_ENTRIES;
+     }
+
 
   ListIterator:一个更加强大的Iterator的子类型，只能用于各种List类的访问，并且可以双向移动
      listIterator()产生一个指向List开始处的ListIterator
