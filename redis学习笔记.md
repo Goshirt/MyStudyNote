@@ -229,6 +229,15 @@
     用SLAVEOF NO ONE命令将从数据库提升成主数据库继续服务，并在原来的主数据库启动后使用SLAVEOF命令将其设置成新的主数据库的从数据库，即
     可将数据同步回来。
 
+### redis的哨兵机制
+    (1)为了解决maste发生故障时可以将slave升级为master,需要引入守护进程（daemon）,监视master以及slave.
+    (2)单个daemon时无法解决可用性，需要引入多个daemon同时监听master以及slave。
+    (3)多个daemon就会出现交互以及通信的问题，这时就引入哨兵sentinel机制。
+    (4)每一个sentinel都会在他们共同的master上订阅相同的chanel,因此，新加入的sentinel只需要订阅这个chanel,然后发布一个消息（包含自己的信息），这样新加入的sentinel就会和之前存在的sentinel建立长连接。
+    (5)sentinel会定期向master发送心跳，判断master的存活状态，一旦master没有响应，sentinel就会把master置为“主管不可用态”。
+    (6)然后sentinel就会向其他的sentinel发送确认信息，当确认的sentinel节点数>quorum（可配置），master的状态就会被置为“客观不可用”。
+    (7)然后sentinel通过一个选举，从salve中推选一个成为新的master。
+
 ### redis安全：
      配置文件中修改bind参数，如只允许本机应用连接Redis，可以将bind参数改成：
      bind 127.0.0.1
