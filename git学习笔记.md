@@ -96,7 +96,8 @@
 	git remote add <shortname> <url> 	添加一个新的远程 Git 仓库，同时指定一个你可							以轻松引用的简写shortname
 
 
-	git fetch origin			拉取 指定仓库中有但你没有的信息
+	git fetch origin			拉取指定仓库中有但你没有的信息
+	git log -p master  ..origin/master //比较本地的master分支和											origin/master分支的差别
 
 	git push origin master		你所做的备份到服务器
 
@@ -158,3 +159,7 @@
 	git config --global core.autocrlf true  
 		当在Windows中使用git add 出现warning: LF will be replaced by CRLF in 问题时，可以使用该命令，
 		这是因为不同系统对于换行符号的定义不一样出现的问题
+用来统计git的提交历史
+ > git log --pretty=tformat: --numstat | awk '{ add += $1; subs += $2; loc += $1 - $2 } END { printf "added lines: %s, removed lines: %s, total lines: %s\n", add, subs, loc }'
+- 返回格式为：
+> added lines: 38210, removed lines: 12091, total lines: 26119

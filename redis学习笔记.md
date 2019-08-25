@@ -4,23 +4,29 @@
     停止redis
         redis-cli SHUTDOWN
     启动redis客户端
-        redis-cli            进入redis命令交互模式
-    通过配置文件启动redisu服务端，可以将配置问件的路径作为参数附加在redis-server
-        redis-server/路径
+        redis-cli            进入redis命令交互模式 
+        在进入reids-cli 命令交互模式之后可以通过
+         config set requirepass 123456  配置连接密码 退出后重启redis-cli生效
+         在命令交互模式下可以使用 info 命令查看reids的连接情况
+    通过配置文件启动redis服务端，可以将配置问件的路径作为参数附加在redis-server
+        redis-server /路径
         config get key       获取配置文件中key的value值
         config set key value 动态设置配置
     redis默认16个数据库（可通过配置参数database来修改），默认启动名为0的数据库通过select 2可选择2号数据库
+    flushall  清除redis中所有数据 
 
 ## redis有五种数据类型：
-    1.string(字符串)、
-    2.hash(散列类型)、
-    3.list(列表类型)、
-    4.set(集合类型)、
-    5.zset(有序集合类型)
+- string(字符串)
+- hash(散列类型)
+- list(列表类型)
+- set(集合类型)
+- zset(有序集合类型)
 
 ### 字符串类型：
-    set key value        设置一个键值对
-    keys *               获取当前数据库的所有的key
+- 字符串内部有len以及capacity属性，capacity为字符串的内存大小，len为实际长度，支持动态扩容，当字符串长度小于1M时，扩容为成倍增加，如果超过1M,扩容时每次最多增加1M,字符串最大不能超过512M。如果一个字符串设置了过期时间，如果期间调用了set方法更改字符串，那么过期时间就会失效。
+
+   > set key value        设置一个键值对
+    keys *               获取当前数据库的所有的key,还可以通过模式匹                      配获取
     exists key           判断key是否存在，存在就返回1，不存在返回0
     del key [key2,key3]  删除一个或者多个key
     type key             获取key对应的value的类型值
@@ -34,8 +40,8 @@
     mset key value [key2,value2 key3 value3]  同时设置多个key-value
 
 ### 散列类型：
-    hset key field value  设置一个只有字段的散列列表，如果key已经存在，就追加，如果该filed已经存在，就更新value值
-    hmset key field value [field value]  设置一个拥有一个或者多个字段的散列列表
+  >hset key field value  设置一个只有字段的散列列表，如果key已经存在，就追加，如果该filed已经存在，就更新value值
+     hmset key field value [field value]  设置一个拥有一个或者多个字段的散列列表
     hget key field        获取key的字段field的value值
     hmget key field [field] 获取key字段的一个或者多个filed的value值
     hgetall key           返回key的所有filed及对应的value
@@ -48,16 +54,17 @@
 
     
  ### 列表（使用的是双向链表）：
-    lpush key value [value]  在列表key的左边增加一个或者多个元素
+- 常用来做异步队列，当列表中的最后一个元素被弹出的时候，列表自动被删除，内存回收。
+    > lpush key value [value]  在列表key的左边增加一个或者多个元素
     rpush key value [value]  在列表key的右边增加一个或者多个元素
     lpop key                 在列表key的左边弹出一个元素（删除）
     rpop key                 在列表key的右边弹出一个元素（删除）
     llen key                 获取列表key的元素个数，当列表不存在时返回0
     lrange key start end     获取列表中指定范围的的数据集，列表索引从0开始，当start或者end为负数时，表示从右边开始数相应的单位
     lrem key count value     删除列表key中count个出现的value值，当count>0从左边开始，当count<0，从右边开始，当count=0,删除所有
-    lindex key index         获取列表key中索引为index的值
+    lindex key index         获取列表key中索引为index的值，会遍历列表，复杂度为O(n)
     lset key index value     在列表key中的索引index位置设置值为value
-    ltrim key start end      删除列表key中指定范围以外的所有数据
+    ltrim key start end      删除列表key中指定范围以外的所有数据，可以实现定长的列表
     linsert key before|after value value2 在列表key中的value的前面或者后面插入value2
     rpoplpush source destination   把source列表转移到destination列表，从source最右边弹出一个元素，从destination最左边加入一个，每次返回该元素的值
 
@@ -235,11 +242,56 @@
     (3)多个daemon就会出现交互以及通信的问题，这时就引入哨兵sentinel机制。
     (4)每一个sentinel都会在他们共同的master上订阅相同的chanel,因此，新加入的sentinel只需要订阅这个chanel,然后发布一个消息（包含自己的信息），这样新加入的sentinel就会和之前存在的sentinel建立长连接。
     (5)sentinel会定期向master发送心跳，判断master的存活状态，一旦master没有响应，sentinel就会把master置为“主管不可用态”。
-    (6)然后sentinel就会向其他的sentinel发送确认信息，当确认的sentinel节点数>quorum（可配置），master的状态就会被置为“客观不可用”。
+    (6)然后sentinel就会向其他的sentinel发送确认信息，当确认的sentinel节点数>quorum（可配置），master的状态就会被置                 为“客观不可用”。
     (7)然后sentinel通过一个选举，从salve中推选一个成为新的master。
-
+### redis分布式锁
+  - 在多个并发人物同时处理一个key时，由于读取数据到内存，修改成功后再返回不是原子操作，因此会导致并发问题的产生。
+    > setnx lockName true  //设置锁
+        ok           //ok证明设置锁成功
+        do something  //做业务操作
+        del lockName  //删除锁，用完之后必须释放
+ - 这样就产生一个问题，如果在进行业务操作的时候，出现异常，导致没能执行del删除命令，就会导致**死锁的产生**，锁永远得不到释放，因此需要设置过期时间
+    > setnx lockName true  //设置锁
+        ok           //ok证明设置锁成功
+        expire lockName 5 //设置5秒过期时间
+        do something  //做业务操作
+        del lockName  //删除锁，用完之后必须释放
+- 问题同样来了，如果在setnx与expire之间服务进程挂掉，那么久无法给锁设置过期时间，**死锁的问题**照样会产生，同样也不能引入事务，因为expire的执行依赖于setnx获取锁成功，如果setnx没有抢到锁，是不应该执行expire的，好在reids2.8之后新增了一个set指令的扩展参数，使得setnx可以与expire一起执行
+  > set lockName true ex 5 //设置锁同时设置过期时间5秒
+  ok //证明设置成功
+- 问题又来了，**分布式锁超时的问题**，如果第一个线程在执行业务操作的时候时间过长，超过了锁的过期时间，这时由于锁过期，第二个线程就会获取到锁，执行任务，在第二个线程执行任务期间，第一个线程执行完了任务，然后执行del命令释放锁，这时来了第三个线程，获取到了锁，同样执行任务，这就导致了第二个线程在执行任务的时候，第三个线程也获取到了锁，解决办法可以为set指令设置一个随机数，在释放锁的时候先匹配随机数是否一致，如果一致再释放锁，这就在第二线程获取锁之后随机数已经发生了改变，第一个锁执行完任务之后del命令无法执行，将由第二个线程执行完任务之后del，由于判断随机数是否相等，然后执行del命令不是原子操作，就需要使用Lua脚本处理
 ### redis安全：
-     配置文件中修改bind参数，如只允许本机应用连接Redis，可以将bind参数改成：
-     bind 127.0.0.1
-    
-    
+ - 配置文件中修改bind参数，如只允许本机应用连接Redis，可以将bind参数改成：
+    > bind 127.0.0.1
+### redis缓存穿透
+- 缓存实效，导致大量的请求直接到达数据库
+    （1）把所有数据库真实存在的数据加载在bitmap中，通过布隆过滤算法，把数据库不存在的数据的请求过滤掉。
+    （2）查询缓存，缓存中存在，返回数据；不存在，查询数据库。
+    （3）查询数据库时，给当前查询加锁，这样对于大量同样的查询请求只有一个连接到数据库，当从数据库中获取到数据之后，更新缓存，同时释放锁。
+### bitmap（同样可以解决10亿个数据中快速判断一个元素是否存在）
+ - 其实就是一个只存01数据的数组，用0代表不存在，1代表存在，不同的key通过多次hash算法，判断对应的位置是否都为1（一次hash算法判断的位置只有一个），由于hash碰撞的存在，经过多次hash可以降低误判率，但不能消除。Guava框架中实现了一个布隆过滤器，新增数据的同时需要往布隆过滤器中添加元素，但是由于guava框架中的布隆过滤器是由普通的bitmap实现的，因此不能有删除方法，因为置0的位置有可能是其他元素某一次hash的置1位，导致这个元素在往后的判断中被判不存在。如果要实现删除，可以通过增加一个计数器，给每一个bit增加一个计数器，一次hash命中，给计数器+1，如果删除时计数器-1，-1后如果计数器的结果为0，证明没有其他元素hash到该为，置0，否则不能置0.
+
+
+## reids 实战
+ 
+ 1. 安装,进入指定的文件后获取reids压缩包
+    `wget http://download.redis.io/releases/redis-5.0.4.tar.gz`
+ 2. 解压文件
+    `tar xzvf redis-5.0.4.tar.gz`
+ 3. 进入刚刚解压的文件夹中 进行编译
+    `make`
+ 4. 安装reids 到路径/home/redis
+    `make PREFIX=/home/redis install` 
+ 5. 在redis-5.0.4文件夹中找到redis.conf,然后移动到redis的安装目录中
+   `mv redis.conf /home/redis`
+ 6. 把redis改为后台启动服务，更改redis.conf文件中的
+     `daemonize no` 改为`daemonize yes`
+ 7. 进入redis的安装目录,并且以redis.conf配置文件的方式启动redis服务
+   `bin/redis-server redis.conf`
+ 8. 进入redis的安装目录，启动redis 客户端
+    `bin/redis-cli`
+## redis 的主从设置
+  - 根据上边的安装方法，安装好两个redis，先关闭redis服务
+  - 修改redis.conf配置文件
+  - 作为master的redis.conf只需要把第70行的 `127.0.0.1`改为`0.0.0.0`,然后找到 `logfile`并指定一个日志文件名
+  - 作为slave的redis.conf同样按照master的改法，然后在任意地方添加新的一行`slaveof slaveIP` slaveIP为slave节点的ip地址
