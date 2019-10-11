@@ -1,19 +1,3 @@
-## 使用
-    指定端口启动redis服务端,默认启动时6379
-        redis-server -port 10008
-    停止redis
-        redis-cli SHUTDOWN
-    启动redis客户端
-        redis-cli            进入redis命令交互模式 
-        在进入reids-cli 命令交互模式之后可以通过
-         config set requirepass 123456  配置连接密码 退出后重启redis-cli生效
-         在命令交互模式下可以使用 info 命令查看reids的连接情况
-    通过配置文件启动redis服务端，可以将配置问件的路径作为参数附加在redis-server
-        redis-server /路径
-        config get key       获取配置文件中key的value值
-        config set key value 动态设置配置
-    redis默认16个数据库（可通过配置参数database来修改），默认启动名为0的数据库通过select 2可选择2号数据库
-    flushall  清除redis中所有数据 
 
 ## redis有五种数据类型：
 - string(字符串)
@@ -24,100 +8,87 @@
 
 ### 字符串类型：
 - 字符串内部有len以及capacity属性，capacity为字符串的内存大小，len为实际长度，支持动态扩容，当字符串长度小于1M时，扩容为成倍增加，如果超过1M,扩容时每次最多增加1M,字符串最大不能超过512M。如果一个字符串设置了过期时间，如果期间调用了set方法更改字符串，那么过期时间就会失效。
-
-   > set key value        设置一个键值对
-   set key value ex seconds 设置一个键值对并且设置过期时间
-    keys *               获取当前数据库的所有的key,还可以通过模式匹                      配获取
-    exists key           判断key是否存在，存在就返回1，不存在返回0
-    del key [key2,key3]  删除一个或者多个key
-    type key             获取key对应的value的类型值
-    incr key             自增1，当key代表的value不是数值类型时，报错
-    decr key             自减1
-    incrby key incrNum   按照指定的incrNum增加
-    decrby key decrNum   按照指定的decrNum减少
-    append key value     在key原来的值后面追加value,如果原来的key不存在，相当于set key value
-    strlen key           返回key对应的value的长度
-    mget key [key2 key3] 同时获取多个key对应的value值
-    mset key value [key2,value2 key3 value3]  同时设置多个key-value
+- `set key value`   设置一个键值对
+- `set key value ex seconds` 设置一个键值对并且设置过期时间
+- `keys *` 获取当前数据库的所有的key,还可以通过模式匹配获取
+- `exists key` 判断key是否存在，存在就返回1，不存在返回0
+- `del key [key2,key3]` 删除一个或者多个key
+- `type key` 获取key对应的value的类型值
+- `incr key` 自增1，当key代表的value不是数值类型时，报错
+- `decr key` 自减1
+- `incrby key incrNum`   按照指定的incrNum增加
+- `decrby key decrNum`   按照指定的decrNum减少
+- `append key value`     在key原来的值后面追加value,如果原来的key不存在，相当于set key value
+- `strlen key`  返回key对应的value的长度
+- `mget key [key2 key3]` 同时获取多个key对应的value值
+- `mset key value [key2,value2 key3 value3]`  同时设置多个key-value
 
 ### 散列类型：
-  >hset key field value  设置一个只有字段的散列列表，如果key已经存在，就追加，如果该filed已经存在，就更新value值
-     hmset key field value [field value]  设置一个拥有一个或者多个字段的散列列表
-    hget key field        获取key的字段field的value值
-    hmget key field [field] 获取key字段的一个或者多个filed的value值
-    hgetall key           返回key的所有filed及对应的value
-    hexists key fieldd     判断是否存在字段field
-    hsetnx key field      当field本来不存在时设值，存在的话不进行任何操作
-    hincrby key field num  使field字段的值增加num,如果key不存在，会创建
-    hdel key field [field] 删除一个或者多个field
-    hkeys key              获取key的所有字段名
-    hvals key              获取key的所有字段对应的value值
+- `hset key field value`  设置一个只有字段的散列列表，如果key已经存在，就追加，如果该filed已经存在，就更新value值
+- `hmset key field value [field value]`  设置一个拥有一个或者多个字段的散列列表
+- `hget key field` 获取key的字段field的value值
+- `hmget key field [field]` 获取key字段的一个或者多个filed的value值
+- `hgetall key`  返回key的所有filed及对应的value
+- `hexists key fieled` 判断是否存在字段field
+- `hsetnx key field`  当field本来不存在时设值，存在的话不进行任何操作
+- `hincrby key field num`  使field字段的值增加num,如果key不存在，会创建
+- `hdel key field [field]` 删除一个或者多个field
+- `hkeys key`  获取key的所有字段名
+- `hvals key`  获取key的所有字段对应的value值
 
     
  ### 列表（使用的是双向链表）：
 - 常用来做异步队列，当列表中的最后一个元素被弹出的时候，列表自动被删除，内存回收。
-    > lpush key value [value]  在列表key的左边增加一个或者多个元素
-    rpush key value [value]  在列表key的右边增加一个或者多个元素
-    lpop key                 在列表key的左边弹出一个元素（删除）
-    rpop key                 在列表key的右边弹出一个元素（删除）
-    llen key                 获取列表key的元素个数，当列表不存在时返回0
-    lrange key start end     获取列表中指定范围的的数据集，列表索引从0开始，当start或者end为负数时，表示从右边开始数相应的单位
-    lrem key count value     删除列表key中count个出现的value值，当count>0从左边开始，当count<0，从右边开始，当count=0,删除所有
-    lindex key index         获取列表key中索引为index的值，会遍历列表，复杂度为O(n)
-    lset key index value     在列表key中的索引index位置设置值为value
-    ltrim key start end      删除列表key中指定范围以外的所有数据，可以实现定长的列表
-    linsert key before|after value value2 在列表key中的value的前面或者后面插入value2
-    rpoplpush source destination   把source列表转移到destination列表，从source最右边弹出一个元素，从destination最左边加入一个，每次返回该元素的值
+- `lpush key value [value]`  在列表key的左边增加一个或者多个元素
+- `rpush key value [value]`  在列表key的右边增加一个或者多个元素
+- `lpop key` 在列表key的左边弹出一个元素（删除）
+- `rpop key` 在列表key的右边弹出一个元素（删除）
+- `llen key` 获取列表key的元素个数，当列表不存在时返回0
+- `lrange key start end`  获取列表中指定范围的的数据集，列表索引从0开始，当start或者end为负数时，表示从右边开始数相应的单位
+- `lrem key count value`  删除列表key中count个出现的value值，当count>0从左边开始，当count<0，从右边开始，当count=0,删除所有
+- `lindex key index`  获取列表key中索引为index的值，会遍历列表，复杂度为O(n)
+- `lset key index value` 在列表key中的索引index位置设置值为value
+- `ltrim key start end` 删除列表key中指定范围以外的所有数据，可以实现定长的列表
+- `linsert key before|after value value2` 在列表key中的value的前面或者后面插入value2
+- `rpoplpush source destination` 把source列表转移到destination列表，从source最右边弹出一个元素，从destination最左边加入一个，每次返回该元素的值
 
 ### 集合：
-    sadd key value [value]   在集合key中添加一个或者多个值，如果不存在key则创建一个
-    sremk key value [value]  在集合key中删除一个或者多个值
-    smembers key             获取集合key的所有值
-    scard key                获取集合key的元素个数
-    sismember key member     判断集合key中是否存在元素member
-    sdiff setA setB [setC]   去掉集合A中出现在集合B中的元素，多个集合时，依次去掉
-    sinter setA setB [setC]  求两个或者多个集合的交集
-    sunion setA setB [setC]  求两个或者多个集合的并集
-    sdiffstore destination key key2 [key3] 求两个或者多个集合的差集并结果存在destination集合中
-    sinterstore destination key key2 [key3] 求两个或者多个集合的交集并将结果存在destination集合中
-    sunion destination key key2 [key3] 求两个或者多个集合的并集并将结果存在destination集合中
-    srandmember key [count]  随机获取集合中的一个元素，当指定count个数时，随机获取count个元素
-    spop key                 从集合中弹出一个元素
-
-    
+- `sadd key value [value]`  在集合key中添加一个或者多个值，如果不存在key则创建一个
+- `sremk key value [value]` 在集合key中删除一个或者多个值
+- `smembers key` 获取集合key的所有值
+- `scard key` 获取集合key的元素个数
+- `sismember key member`  判断集合key中是否存在元素member
+- `sdiff setA setB [setC]`   去掉集合A中出现在集合B中的元素，多个集合时，依次去掉
+- `sinter setA setB [setC]`  求两个或者多个集合的交集
+- `sunion setA setB [setC]`  求两个或者多个集合的并集
+- `sdiffstore destination key key2 [key3]` 求两个或者多个集合的差集并结果存在destination集合中
+- `sinterstore destination key key2 [key3]` 求两个或者多个集合的交集并将结果存在destination集合中
+- `sunion destination key key2 [key3]` 求两个或者多个集合的并集并将结果存在destination集合中
+- `srandmember key [count]`  随机获取集合中的一个元素，当指定count个数时，随机获取count个元素
+- `spop key` 从集合中弹出一个元素
  ### 有序集合（在集合的基础上为每一个元素加上了一个分数）：
-    zadd key score member [score member]  在有序集合中添加一个或者多个元素以及该元素的分数，如果该key不存在则创建，如果该元素存在则更新分数
-    zscore key member                     获取指定元素的分数
-    zrange ket start stop [withscores]    按照元素分数从小到大的顺序返回下标start-stop范围的元素，下标从0开始，包含start，stop,
-                                          加上withscores时返回该元素的分数
-    ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]   按照元素分数从小到大的顺序返回分数在min和max之间（包含min和max）的元素
-                                                                  分数范围不包含端点值，可以在分数前加上“(”符号，
-                                                                  -inf 和+inf分别表示负无穷和正无穷
-                                                                  limit同sql的用法
-    ZRANGEBYSCORE scoreboard 80 (100                       可以含80分，但不包含100分
-    ZRANGEBYSCORE scoreboard (80 +inf                      得到所有分数高于80分（不包含80分）的人的名单
-    ZINCRBY key increment member                           给指定的key中的member元素增加increment分数
-    ZCARD key                             获得集合中元素的数量
-    ZCOUNT key min max                    获得指定分数范围內的元素个数
-    ZREM key member [member …]            删除一个或多个元素
-    ZREMRANGEBYRANK key start stop        按照元素分数从小到大的顺序（即索引0表示最小的值）删除处在指定排名范围内的所有元素
-    ZREMRANGEBYSCORE key min max          删除指定分数范围内的所有元素
-    ZRANK key member                      获得元素的排名，从小到大的排名
-    ZREVRANK key member                   获得元素的排名，从大到小的排名
-
-
+- `zadd key score member [score member]`  在有序集合中添加一个或者多个元素以及该元素的分数，如果该key不存在则创建，如果该元素存在则更新分数
+- `zscore key member`  获取指定元素的分数
+- `zrange ket start stop [withscores]`  按照元素分数从小到大的顺序返回下标start-stop范围的元素，下标从0开始，包含start，stop, 加上withscores时返回该元素的分数
+- `ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]`  按照元素分数从小到大的顺序返回分数在min和max之间（包含min和max）的元素分数范围不包含端点值，可以在分数前加上“(”符号,-inf 和+inf分别表示负无穷和正无穷,limit同sql的用法
+- `ZINCRBY key increment member` 给指定的key中的member元素增加increment分数
+- `ZCARD key` 获得集合中元素的数量
+- `ZCOUNT key min max` 获得指定分数范围內的元素个数
+- `ZREM key member [member …]`  删除一个或多个元素
+- `ZREMRANGEBYRANK key start stop` 按照元素分数从小到大的顺序（即索引0表示最小的值）删除处在指定排名范围内的所有元素
+- `ZREMRANGEBYSCORE key min max`  删除指定分数范围内的所有元素
+- `ZRANK key member` 获得元素的排名，从小到大的排名
+- `ZREVRANK key member`  获得元素的排名，从大到小的排名
     
   ### 事务（不支持回滚）
-    redis＞MULTI                          开启事务，接下来的操作属于同一个事务(执行exec前的所有命令都会存放在一个队列结构体中)
-    redis＞EXEC                           执行事务（redis是单进程单线程机制工作机制的，依次执行队列结构体中保存的命令，
-                                            如果期间出错，不进行回滚，但会结束事务）
-    redis＞WATCH key                      WATCH命令可以监控一个或多个键，一旦其中有一个键被修改（或删除），之后的事务就不会执行
-                                              监控一直持续到EXEC命令（事务中的命令是在EXEC之后才执行的，所以在MULTI命令后可以修改WATCH监控的键值）
-
- ### 时效：
-    EXPIRE key seconds                    设置一个键的生存时间，单位是秒
-    TTL key                               返回一个失效键剩余时间
-    PERSIST key                           取消一个键设置的生存时间，使用SET或GETSET命令为键赋值也会同时清除键的生存时间
+1. `MULTI`  开启事务，接下来的操作属于同一个事务(执行exec前的所有命令都会存放在一个队列结构体中)
+2. 需要执行的命令
+3. `EXEC`  执行事务（redis是单进程单线程机制工作机制的，依次执行队列结构体中保存的命令,如果期间出错，不进行回滚，但会结束事务）
+4. `WATCH ` WATCH命令可以监控一个或多个键，一旦其中有一个键被修改（或删除），之后的事务就不会执行,监控一直持续到EXEC命令（事务中的命令是在EXEC之后才执行的，所以在MULTI命令后可以修改WATCH监控的键值）
+### 时效：
+- `EXPIRE key seconds`  设置一个键的生存时间，单位是秒
+- `TTL key`      返回一个key的失效剩余时间
+- `PERSIST key`  取消一个键设置的生存时间，使用SET或GETSET命令为键赋值也会同时清除键的生存时间
 
 
 ### Redis淘汰机制：（从已有缓存中按照淘汰机制删除一些数据）
@@ -300,6 +271,7 @@
 - 内存操作 
 - 单线程 
 - 多路复用
+- RESP协议（redis的底层协议,学习之后可以通过socket手写jedis）
 ## hash的内部编码
 - ziplist（压缩列表）
 当哈希类型的元素个数小于hash-max-ziplist-entries配置（默认512个），同时所有值都小于hash-maxziplist-value配置（默认为64字节），Redis会使用ziplist做为哈希的内部实现。Ziplist可以使用更加紧凑的结构来实现多个元素的连续存储，所以在节省内存方面更加优秀。
