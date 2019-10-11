@@ -26,6 +26,7 @@
 - 字符串内部有len以及capacity属性，capacity为字符串的内存大小，len为实际长度，支持动态扩容，当字符串长度小于1M时，扩容为成倍增加，如果超过1M,扩容时每次最多增加1M,字符串最大不能超过512M。如果一个字符串设置了过期时间，如果期间调用了set方法更改字符串，那么过期时间就会失效。
 
    > set key value        设置一个键值对
+   set key value ex seconds 设置一个键值对并且设置过期时间
     keys *               获取当前数据库的所有的key,还可以通过模式匹                      配获取
     exists key           判断key是否存在，存在就返回1，不存在返回0
     del key [key2,key3]  删除一个或者多个key
@@ -295,3 +296,13 @@
   - 修改redis.conf配置文件
   - 作为master的redis.conf只需要把第70行的 `127.0.0.1`改为`0.0.0.0`,然后找到 `logfile`并指定一个日志文件名
   - 作为slave的redis.conf同样按照master的改法，然后在任意地方添加新的一行`slaveof slaveIP` slaveIP为slave节点的ip地址
+## reids为什么这么快
+- 内存操作 
+- 单线程 
+- 多路复用
+## hash的内部编码
+- ziplist（压缩列表）
+当哈希类型的元素个数小于hash-max-ziplist-entries配置（默认512个），同时所有值都小于hash-maxziplist-value配置（默认为64字节），Redis会使用ziplist做为哈希的内部实现。Ziplist可以使用更加紧凑的结构来实现多个元素的连续存储，所以在节省内存方面更加优秀。
+
+- hashtable（哈希表）
+当哈希类型无法满足ziplist要求时，redis会采用hashtable做为哈希的内部实现，因为此时ziplist的读写效率会下降

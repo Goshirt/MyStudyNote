@@ -52,6 +52,7 @@ Linux下的根目录是:/
 - `cp -d` 若文件是链接文件，则复制链接属性
 - `cp -a` 相当于-pdr 剪切/重命名
 - `mv  name name2`   源文件目录到目标文件目录，如果name和name2在同一个目录下则是重命名
+- `find / -name fileName` 在路径`/`下查找fileName文件所在的路径
 
 ### 防火墙常用命令
 - `firewall-cmd --zone=pulic --add-port=3306/tcp --permanent` 开发3306端口
@@ -60,8 +61,8 @@ Linux下的根目录是:/
 -  `systemctl start firewall` 开启防火墙
 
 ## centos 文件夹，文件 名称乱码解决办法
-	1、安装convmv    yum install convmv
-	2、批量递归修改当前目录下的文件名格式    convmv -f GBK -t UTF-8 -r --notest ./*
+    1、安装convmv    yum install convmv
+    2、批量递归修改当前目录下的文件名格式    convmv -f GBK -t UTF-8 -r --notest ./*
 
 
 ## 安装mysql后登录mysql 无法登录时
@@ -115,7 +116,7 @@ Linux下的根目录是:/
 -  `wq!`强制保存并退出
 
 ## 查找机器信息常用命令
-- `free -mh/-h` 显示内存使用
+- `free -m` `free -h` `free ` 显示内存使用
 - `cat /proc/meninfo` 读出内核的信息并显示
 - `cat /proc/cpuinfo` 读出cpu的信息并显示
 - `df -h` 显示硬盘的使用信息

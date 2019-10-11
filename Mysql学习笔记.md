@@ -184,3 +184,13 @@
 ## 基于主键索引和普通索引的区别
   * 主键索引是建立在主键上是索引，保存的row的数据
   * 普通索引是建立在普通字段上的索引，保存的是主键的值，查到主键的值之后再根据主键索引获取相应的row数据并返回，称之为回表。
+## mysql的常用设置
+- `show VARIABLES like '%slow_query_log%'`; 查看是否输出慢查询日志
+- `show VARIABLES like '%log_output%'`; 查看日志输出方式
+- `show VARIABLES like '%long_query_time%'`; 查看定义多少秒为慢查询
+- `show VARIABLES like '%general_log%'`;查看是否开启输出所有日志
+- `set global log_output='table'` //日志输出到table（默认file）
+- `set global general_log=on`; //打开输出所有日志
+- `set global slow_query_log=on`; //打开慢SQL日志
+- `set global long_query_time=2` //设置2秒以上为慢查询
+- `repair table mysql.general_log` //修复日志表（如果general_log表报错的情况下执行）
