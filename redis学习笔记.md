@@ -80,7 +80,7 @@
 - `ZRANK key member` 获得元素的排名，从小到大的排名
 - `ZREVRANK key member`  获得元素的排名，从大到小的排名
     
-  ### 事务（不支持回滚）
+### 事务（不支持回滚）
 1. `MULTI`  开启事务，接下来的操作属于同一个事务(执行exec前的所有命令都会存放在一个队列结构体中)
 2. 需要执行的命令
 3. `EXEC`  执行事务（redis是单进程单线程机制工作机制的，依次执行队列结构体中保存的命令,如果期间出错，不进行回滚，但会结束事务）
@@ -113,19 +113,29 @@
 
 ### Redis数据持久化:(Redis 中的数据从内存中 dump 到磁盘)
 
-    RDB:可以定时备份内存中的数据集。服务器启动的时候，可以从 RDB 文件中恢复数据集
-        当前进程执行
-        后台执行（BGSAVE）:是 fork 出一个子进程，把内存中的数据集整个 dump 到硬盘上
+- RDB:可以定时备份内存中的数据集。服务器启动的时候，可以从 RDB 文件中恢复数据集当前进程执行 。有两种模式手动命令触发和自动触发，手动触发通过两个命令`save`和`bgsave`命令，自动触发可以通过配置redis.conf文件配置RDB文件的文件名以及保存路径，自动触发使用的是`bsave`模式
+  1. save(阻塞执行)
+  2. BGSAVE（fork一个子进程执行）:是 fork 出一个子进程，把内存中的数据集整个 dump 到硬盘上
+ 
+- AOF:可以记录服务器的所有写操作。在服务器重新启动的时候，会把所有的写操作重新执行一遍，从而实现数据备份。当写操作集过大（比原有的数据集还大），Redis 会重写写操作集。redis.conf中AOF的配置：
+  `appendonly yes`           //启用aof持久化方式
+  `appendfsync always` //每收到写命令就立即强制写入磁盘，最慢的，但是保证完全的持久化，不推荐使用
+  `appendfsync everysec` //每秒强制写入磁盘一次，性能和持久化方面做了折中，推荐
+  `no-appendfsync-on-rewrite  yes`  //正在导出rdb快照的过程中,要不要停止同步aof
+  `auto-aof-rewrite-percentage 100`  //aof文件大小比起上次重写时的大小,增长率100%时,重写
+  `auto-aof-rewrite-min-size 64mb `  //aof文件,至少超过64M时,重写
+- AOF的流程
+  1. 所有的写入命令(set hset ..)会append追加到aof_buf缓冲区中
+  2. AOF缓冲区向硬盘做sync同步
+  3. 随着AOF文件越来越大，需定期对AOF文件rewrite重写，达到压缩
+  4. 当redis服务重启，可load加载AOF文件进行恢复
 
-    AOF:可以记录服务器的所有写操作。在服务器重新启动的时候，会把所有的写操作重新执行一遍，从而实现数据备份。
-        当写操作集过大（比原有的数据集还大），Redis 会重写写操作集。
-
-    后台执行:fork 一个子进程，主进程仍进行服务，子进程执行AOF 持久化，数据被dump 到磁盘上。与 RDB 不同的是，后台子进程持久化过程中，
-            主进程会记录期间的所有数据变更（主进程还在服务），并存储在 server.aof_rewrite_buf_blocks 中；
-            后台子进程结束后，Redis 更新缓存追加到 AOF 文件中，是 RDB 持久化所不具备的
-    边服务边备份
-
-        
+- RDB与AOF优缺点对比:
+   1. RDB是压缩后的二进制文件，恢复速度比AOF快,但是无法做到实时持久化，丢失的数据多，每次持久化需要创建子进程，开销大，由于是二进制文件，存在兼容性问题.
+   2. AOF由于是追加写的方式把命令加入文件中，可能对导致文件过大，而且恢复的速度比RDB慢
+- 当RDB与AOF同时开启时,Redis重启的加载顺序：
+  1. 优先加载AOF,启动
+  2. 如果AOF文件不存在，加载RDB
  ### 订阅发布机制
     频道（channel）订阅: CA（client A）向服务器订阅了频道 news，当 CB 向 news 发布消息的时候，CA 便能收到
 
@@ -244,7 +254,7 @@
  - 其实就是一个只存01数据的数组，用0代表不存在，1代表存在，不同的key通过多次hash算法，判断对应的位置是否都为1（一次hash算法判断的位置只有一个），由于hash碰撞的存在，经过多次hash可以降低误判率，但不能消除。Guava框架中实现了一个布隆过滤器，新增数据的同时需要往布隆过滤器中添加元素，但是由于guava框架中的布隆过滤器是由普通的bitmap实现的，因此不能有删除方法，因为置0的位置有可能是其他元素某一次hash的置1位，导致这个元素在往后的判断中被判不存在。如果要实现删除，可以通过增加一个计数器，给每一个bit增加一个计数器，一次hash命中，给计数器+1，如果删除时计数器-1，-1后如果计数器的结果为0，证明没有其他元素hash到该为，置0，否则不能置0.
 
 
-## reids 实战
+## reids 安装
  
  1. 安装,进入指定的文件后获取reids压缩包
     `wget http://download.redis.io/releases/redis-5.0.4.tar.gz`
@@ -267,6 +277,19 @@
   - 修改redis.conf配置文件
   - 作为master的redis.conf只需要把第70行的 `127.0.0.1`改为`0.0.0.0`,然后找到 `logfile`并指定一个日志文件名
   - 作为slave的redis.conf同样按照master的改法，然后在任意地方添加新的一行`slaveof slaveIP` slaveIP为slave节点的ip地址
+## reids慢查询日志配置
+- 在reids.conf下配置：
+  `slowlog-log-slower-than 10000`  记录超过10000微妙也就是10毫秒的命令，对于高并发时可以将10000改为1000
+  `slowlog-max-len 128` 记录慢日志的队列大小，当超过队列大小是，把队头的移出队列
+- `slowlog get` 获取慢查询的队列内容
+- `slowlog len`获取慢查询队列的长度
+- `slowlog reset`重置慢查询队列
+- 由于慢查询的记录存在队列中，需要定期执行`slowlog get`并将结果转存其他地方
+## redis性能测试
+- `bin/redis-benchmark -h ip -p port -c 100 -n 10000` 100个并发连接，1000个请求，测试命令的性能
+- - `bin/redis-benchmark -h ip -p port -t set,get -n 100000 -q` 100个并发连接，1000个请求，测试sest & get命令的性能
+- `bin/redis-benchmark -h ip -p port -q -d 100` 测试存取大小为100字节的数据包的性能
+
 ## reids为什么这么快
 - 内存操作 
 - 单线程 
@@ -278,3 +301,67 @@
 
 - hashtable（哈希表）
 当哈希类型无法满足ziplist要求时，redis会采用hashtable做为哈希的内部实现，因为此时ziplist的读写效率会下降
+## 利用redis的RESP协议快速导入mysql的表数据
+- `mysql -uuserName -ppassword dbName --skip-column-names --raw < test.sql | ./redis-cli -h url -p port -a password2 --pipe` 
+  1. `userName` 连接数据库的用户名
+  2. `password` 连接数据库的密码
+  3. `dbName` 连接的数据名
+  4. `url` reids的ip地址
+  5. `port` redis的连接端口
+  6. `password2` reids的连接密码
+  7. `test.sql` 拼接的sql,可以访问teset.sql的命令
+  8. `./redis-cli` 可以启动redis client的命令
+
+- test.sql内容：
+>  ` SELECT CONCAT( 
+"*20\r\n", 
+'$',LENGTH(redis_cmd),'\r\n',redis_cmd,'\r\n', 
+'$',LENGTH(redis_key),'\r\n',redis_key,'\r\n', 
+'$',LENGTH(filed_blogId),'\r\n',filed_blogId,'\r\n', 
+'$',LENGTH(blogId),'\r\n',blogId,'\r\n', 
+'$',LENGTH(filed_tile),'\r\n',filed_tile,'\r\n', 
+'$',LENGTH(title),'\r\n',title,'\r\n', 
+'$',LENGTH(filed_summary),'\r\n',filed_summary,'\r\n', 
+'$',LENGTH(summary),'\r\n',summary,'\r\n', 
+'$',LENGTH(filed_releaseDate),'\r\n',filed_releaseDate,'\r\n', 
+'$',LENGTH(releaseDate),'\r\n',releaseDate,'\r\n', 
+'$',LENGTH(filed_clickNum),'\r\n',filed_clickNum,'\r\n', 
+'$',LENGTH(clickNum),'\r\n',clickNum,'\r\n', 
+'$',LENGTH(filed_replyNum),'\r\n',filed_replyNum,'\r\n', 
+'$',LENGTH(replyNum),'\r\n',replyNum,'\r\n', 
+'$',LENGTH(filed_content),'\r\n',filed_content,'\r\n', 
+'$',LENGTH(content),'\r\n',content,'\r\n', 
+'$',LENGTH(filed_typeId),'\r\n',filed_typeId,'\r\n', 
+'$',LENGTH(typeId),'\r\n',typeId,'\r\n', 
+'$',LENGTH(filed_keyWord),'\r\n',filed_keyWord,'\r\n' 
+'$',LENGTH(keyWord),'\r\n',keyWord,'\r') 
+FROM( 
+SELECT 
+'HMSET' as redis_cmd, 
+'t_blog' as redis_key, 
+'blogId' as filed_blogId, 
+blogId as blogId, 
+'title' as filed_tile, 
+title as title, 
+'summary' as filed_summary, 
+summary as summary, 
+'releaseDate' as filed_releaseDate, 
+releaseDate as releaseDate, 
+'clickNum' as filed_clickNum, 
+clickNum as clickNum, 
+'replyNum' as filed_replyNum, 
+replyNum as replyNum, 
+'content' as filed_content, 
+content as content, 
+'typeId' as filed_typeId, 
+typeId as typeId, 
+'keyWord' as filed_keyWord, 
+keyWord as keyWord 
+FROM t_blog)AS ttt;`
+## jedis pipelined实现批量操作
+使用pipelined进行批量操作可以减少因为网络环境引起的性能开销
+> Pipelined pipelined = jedis.pipelined();
+ for(){
+    pipelined.del(key);//不提交
+}
+pipeliend.sync();//提交
