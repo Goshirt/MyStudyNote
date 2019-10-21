@@ -125,4 +125,10 @@ Linux下的根目录是:/
 - `scp [-r]|[-P] /home/data/test.txt 192.168.2.2:/home/data/` 把本机、home/data/test.txt 文件传输到192.168.2.2 的/home/data/ 目录下，如果传输的目录，则需要加上`-r` ，要指定端口需要加上`-P port`
 ## 环境变量
 - `source /etc/profile` 使修改过的环境变量生效
-
+  
+##用户操作
+- `su userName` 切换到userName用户
+- `useradd userName` 添加userName 用户
+- `passwd userName` 添加userName密码	
+- `/etc/hostname `在该文件下可以修改主机名
+  

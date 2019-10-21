@@ -189,8 +189,15 @@
 - `show VARIABLES like '%log_output%'`; 查看日志输出方式
 - `show VARIABLES like '%long_query_time%'`; 查看定义多少秒为慢查询
 - `show VARIABLES like '%general_log%'`;查看是否开启输出所有日志
+1. 全局变量设置
 - `set global log_output='table'` //日志输出到table（默认file）
 - `set global general_log=on`; //打开输出所有日志
 - `set global slow_query_log=on`; //打开慢SQL日志
 - `set global long_query_time=2` //设置2秒以上为慢查询
 - `repair table mysql.general_log` //修复日志表（如果general_log表报错的情况下执行）
+2. 配置文件设置，慢查询日志文件的路径要设置在/var/log/下，并且赋予权限给mysql用户
+- `my.cnf` mysql配置慢查询的配置文件
+- `slow_query_log = ON`
+`slow_query_log_file = /etc/log/mysql-slow.log`
+`long_query_time = 1`
+- `chown mysql:mysql /var/log/mysql-slow.log` 赋予权限
