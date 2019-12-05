@@ -121,6 +121,10 @@ Linux下的根目录是:/
 - `cat /proc/cpuinfo` 读出cpu的信息并显示
 - `df -h` 显示硬盘的使用信息
 - `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
+ ## buff/cache 缓存过高时可以手动清楚缓存 
+- `echo 1 > /proc/sys/vm/drop_caches`  清除pagecache
+- `echo 2 > /proc/sys/vm/drop_caches` 清除回收slab分配器中的对象（包括目录项缓存和inode缓存）
+- `echo 3 > /proc/sys/vm/drop_caches`清除pagecache和slab分配器中的缓存对象
 ## 传输命令
 - `scp [-r]|[-P] /home/data/test.txt 192.168.2.2:/home/data/` 把本机、home/data/test.txt 文件传输到192.168.2.2 的/home/data/ 目录下，如果传输的目录，则需要加上`-r` ，要指定端口需要加上`-P port`
 ## 环境变量
