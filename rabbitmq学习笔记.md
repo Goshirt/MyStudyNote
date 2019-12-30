@@ -29,12 +29,10 @@
    - `rabbitmqctl clear_permissions[-p <vhostpath>] <username>` 清楚用户权限
    - `rabbitmqctl set_permissions [-p <vhostpath>] <user> <conf> <write> <read>`设置用户可访问的虚拟路径的权限，ps:后三个参数可以使用通配符，例如给helmet用户设置访问虚拟主机/，并具有可配置，可读可写的权限 `rabbitmqctl set_permissions -p / helmet ".*" ".*" ".*"`
 # exchange 类型
-- direct 由生产者与消费指定一样的routingkey
-- topic
-- fanout
-- header
-- 
-## channel
+- direct 生产者与消费者指定一个队列进行一对一生产消费 rabbitmq默认使用该类型
+- worker 多个消费者订阅一个队列，但是队列中的消息只能被其中一个消费者消费，当生产者产生大量的消息时，默认使用轮旬的方式公平的分给多个消费者，可以通过设置channel的`basicQos = 1`以及关闭自动应答机制 达到能者多劳的分配方式
+- topic 主题模式，与带有通配符的routingkey相匹配的消费者都能接收到消息
+- fanout 广播模式 ,所有的消费者都能接收到消息
 
 
 ## 如何保障消息100%投递成功
@@ -55,7 +53,83 @@
 - 唯一ID + 指纹码 机制，利用数据库主键去重
   (1). select count(1) from t_order where Id = 唯一Id + 指纹码。 先查找数据，查不到数据insert ,查到就不insert。
 - 利用redis的原子性
-## Confirm mq消息确认流程  
+## Confirm mq消息确认流程 
+通过消息确认机制可以知道消息是否已经送达队列。有三种消息确认方式：
+1.  普通Confirm模式,通过`channel.confirmSelect()`开启消息确认机制，然后使用`channel.waitForConfirms()`接收是否送达的返回值
+    ``` // 创建连接
+    ConnectionFactory factory = new ConnectionFactory();
+    factory.setUsername(config.UserName);
+    factory.setPassword(config.Password);
+    factory.setVirtualHost(config.VHost);
+    factory.setHost(config.Host);
+    factory.setPort(config.Port);
+    Connection conn = factory.newConnection();
+    // 创建信道
+    Channel channel = conn.createChannel();
+    // 声明队列
+    channel.queueDeclare(config.QueueName, false, false, false, null);
+    // 开启发送方确认模式
+    channel.confirmSelect();
+    String message = String.format("时间 => %s", new Date().getTime());
+    channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
+    if (channel.waitForConfirms()) {
+        System.out.println("消息发送成功" );
+    }
+
+    ```
+2.  批量Confirm模式
+    ```// 创建连接
+    ConnectionFactory factory = new ConnectionFactory();
+    factory.setUsername(config.UserName);
+    factory.setPassword(config.Password);
+    factory.setVirtualHost(config.VHost);
+    factory.setHost(config.Host);
+    factory.setPort(config.Port);
+    Connection conn = factory.newConnection();
+    // 创建信道
+    Channel channel = conn.createChannel();
+    // 声明队列
+    channel.queueDeclare(config.QueueName, false, false, false, null);
+    // 开启发送方确认模式
+    channel.confirmSelect();
+    for (int i = 0; i < 10; i++) {
+        String message = String.format("时间 => %s", new Date().getTime());
+        channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
+    }
+    channel.waitForConfirmsOrDie(); //直到所有信息都发布，只要有一个未确认就会IOException
+    System.out.println("全部执行完成");
+    ```
+3.  异步Confirm模式
+    ```// 创建连接
+    ConnectionFactory factory = new ConnectionFactory();
+    factory.setUsername(config.UserName);
+    factory.setPassword(config.Password);
+    factory.setVirtualHost(config.VHost);
+    factory.setHost(config.Host);
+    factory.setPort(config.Port);
+    Connection conn = factory.newConnection();
+    // 创建信道
+    Channel channel = conn.createChannel();
+    // 声明队列
+    channel.queueDeclare(config.QueueName, false, false, false, null);
+    // 开启发送方确认模式
+    channel.confirmSelect();
+    for (int i = 0; i < 10; i++) {
+        String message = String.format("时间 => %s", new Date().getTime());
+        channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
+    }
+    //异步监听确认和未确认的消息
+    channel.addConfirmListener(new ConfirmListener() {
+        @Override
+        public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+            System.out.println("未确认消息，标识：" + deliveryTag);
+        }
+        @Override
+        public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+            System.out.println(String.format("已确认消息，标识：%d，多个消息：%b", deliveryTag, multiple));
+        }
+    });
+    ```
 
 ## Return消息机制 
 
@@ -94,6 +168,33 @@
   - 使用KeepAlived 实现高可用，解决HAProxy单点故障
   - 在HAProxy节点中安装KeepAlived
   - 延迟插件的使用，指定延迟时间
+
+  - 具体实现
+  > 1. 准备三个机器节点 
+  > 2. 在其中一个机器上准备环境 
+  `yum install build-essential openssl openssl-devel unixODBC unixODBC-devel make gcc gcc-c++ kernel-devel m4 ncurses-devel tk tc xz `
+  > 3. 安装erlang 
+  `yum install erlang`
+  > 4. 安装rabbitmq 服务
+  `yum install rabbitm-server`
+  > 5. 安装socat 
+  `yum install socat`
+  > 6. 修改rabbitmq的配置文件，根据安装的rabbitmq版本有差异，本次测试版本为rabbitmq_server-3.3.5
+  `vi /usr/lib/rabbitmq/lib/rabbitmq_server-3.3.5/ebin/rabbit.app` 
+    loopback_users 的值改为  loopback_users [guest]
+    heartbeat  的值改为 1
+  > 7.
+ 
 4. 多活模式
 
 ## set（单元化架构）（第六章）
+ - 不同集群中节点的通信 federation插件
+
+## 基础组件的封装（第七章）
+- 迅速消息发送
+- 确认消息发送
+- 批量消息发送
+- 延迟消息发送
+- 顺序消息发送
+- 事务消息发送
+- 消息幂等性保障 - 消息路由规则架构设计
