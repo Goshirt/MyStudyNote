@@ -37,7 +37,7 @@
 ## 镜像 image
 #### 运行镜像
 镜像的运行是在原有的镜像基础上添加一层容器层，对镜像的增删改查操作都只是记录在容器层中，这样就保证多个镜像共享基础镜像而互不干扰，修改的时候使用的是copy-on-write的特性，先把修改的文件从上往下找，找到第一个直接复制到容器层进行修改
-- `docker run -it iamgeid`通过命令行交互的方式运行镜像 `-m`设置容器使用的内存，`--memory-swap`设置内存+swap的和使用限额，如果不指定`--memory-swap`则默认为`-m`的两倍，`-vm 1`启动一个内存工作现程，`--vm-bytes 280M`每一个线程分配280M内存，如果`--vm-bytes`指定的内存超过`--memory-swap`指定的内存，则启动失败，`-c或者--cpu-shares`可以指定cpu分配的数量
+- `docker run -it iamgeid`通过命令行交互的方式运行镜像 `-m`设置容器使用的内存，`--memory-swap`设置内存+swap的和使用限额，如果不指定`--memory-swap`则默认为`-m`的两倍，`-vm 1`启动一个内存工作现程，`--vm-bytes 280M`每一个线程分配280M内存，如果`--vm-bytes`指定的内存超过`--memory-swap`指定的内存，则启动失败，`-c或者--cpu-shares`可以指定cpu分配的数量，`-p`可以指定端口的映射，`--ip`可以指定容器的静态ip,但是必须是使用`--subnet`创建的网络才可以指定容器的静态ip
 - `docker run -m 200M --memory-swap=300M -it iamgeid`最多运行使用200M的内存和100M的swap。
 - `docker run -it -m 200M --memory-swap=300M progrium/stress --vm 1 --vm-bytes 280M`启动一个内存工作线程，每个线程分配280M内存，过程为分陪280M，释放280M,分配280M，释放280M,循环下去，可用于容器 压测。
 - `docker run -it --name centos_ioa --blkio-weight 600 imageid` 启动容器的block io 权重为600，more为500。
@@ -78,7 +78,7 @@ Dockerfile three
 - `RUN`在容器中运行指定的命令
 - `CMD` 容器启动时指定的命令，可以有多个`CMD`命令，但是只有最后一个会生效
 - `ENTRYPOINT` 设置容器启动时运行的命令
-#### RUN CMD ENTRYPOINT三个命令的区别
+##### RUN CMD ENTRYPOINT三个命令的区别
  1. RUN：通常用于安装应用和软件包，在当前镜像的顶部执行命令，并创建新的镜像层，一个Dockerfile中可以包含多个RUN指令，有两种书写格式：
       - Shell格式： RUN    eg: `RUN yum install -y httpd`
       - Exec格式： RUN["executable","param1","param2"]
@@ -90,6 +90,32 @@ Dockerfile three
       - Exec格式：ENTRYPOINT ["executable","param1","param2"] (推荐格式) eg: `ENTRYPOINT ["/bin/echo","hello"] CMD ["world"]` 当通过docker run -it 启动容器时会输出: hello word
       - Shell格式：ENTRYPOINT command param1 param2
 ## 容器底层技术 cgroup 和 namespace
+## 容器的网络
+`docker network ls`可以查看到docker的网络情况，默认安装了三种网络,在创建容器是可以通过`--network={type}`指定使用的网络，此外还可以自己创建user-defind网络,同一网络下的容器可以相互通信，不同网络下的容器通信时需要额外的设置，例如`docker network connect {networkName} {containerId}`将现有容器加入到指定的网络中
+1. none:什么网络也没有，挂在该网络下的容器除了lo,不存在任何网卡，这样封闭的网络环境使用于随机密码生成
+2. host：共享宿主机的网络栈，网络配置与host完全一样，最大的好处就是性能好，但灵活性不好，docker host 上已经使用的端口不能再使用。
+3. bridge：docker安装的时候会创建一个命名为docker0的linux bridge,如果不指定 `--network`创建的容器默认会挂载到docker0上，创建出来的容器的ip从`172.17.0.0/16`中自动分配,并且网关为`172.17.0.1`,可以通过`docker network inspect bridge` 查看。
+4. user-defined:提供三种种网络驱动：bridge/overlay/macvlan,overlay和maclan用于创建跨主机的网络。
+   - bridge驱动： `docker network create --driver bridge my_net`可以创建一个类似默认的bridge类型的网络，然后通过`brctl show`可以查看到宿主机多了一个新创建的bridge,可以在创建的时候加上`--subnet 172.22.16.0/24` 和 `--gateway 172.22.16.1`指定ip网段和网关
+
+##### docker容器与外部环境网络访问
+1. docker容器默认就可以访问外部的网络
+2. 外部访问docker容器时，容器的宿主机默认会创建一个docker-proxy进程处理外部的访问，docker-proxy会监听容器绑定到宿主机的的端口，当外部访问宿主机的该端口时，docker-proxy就会把访问转发给容器。
+
+## 容器的数据保存
+1. 保存在镜像中,例如在容器安装的软件，应用
+2. 保存在data volume，volume其实是宿主机文件系统的一部分，容量取决于当前宿主机未使用的空间，有两种类型的volume:`bind mount` 和 `docker managed`。例如容器运行产生的数据
+     - `bind mount`:将宿主机中已存在的目录或者文件mount到容器中 可以在run启动容器是使用`-v {hosPath}:{containerPath}:ro`(`eg: -v /home/data/python:/home`)把宿主机的目录挂载到容器中，当容器删除时，宿主机的目录依旧存在,`:ro`指定为只读，默认为可读可写，只读时容器就无权更改数据，提高安全性。当hostPath 在宿主机不存在时，会作为一个新目录挂载在容器中。
+     - `docker managed`:不需要指定`hostPath` 只需要在启动时通过`-v {containerPath}`就可以，启动容器后可以通过`docker inspect`查看data volume的位置，在Mounts中指出
+     - 两者的区别：
+        |   不同点 |   bind mount  |   docker managed  |
+        |:------- |:----------|:----------- |
+        |volume的位置 | 可任意指定| /var/lib/docker/volumes/..|
+        |对已有mount point 的影响 | 隐藏并替换volume | 原有数据复制到volumes
+        |对单文件的指出 | 支持 | 不支持|
+        |权限控制 | 可设置可读，默认为可读可写 | 无法控制，均为可读可写|
+        |移植性 | 移植性弱，与host path 绑定 | 移植性强，无须指定host目录|
+
 ##配置docker镜像加速地址
 1. 在`/etc/docker/daemon.json`(没有该文件时新建一个)添加下边的代码(url为自己在阿里云控制台容器镜像服务获取到的url)：
    `{
