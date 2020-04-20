@@ -1,5 +1,6 @@
 ## spring两种ioc容器实现
 - BeanFactory
+  
   > 
 - ApplicationContext  
 ApplicationContext是BeanFactory的子接口（推荐使用）。有三个具体的实现类：
@@ -8,13 +9,24 @@ ApplicationContext是BeanFactory的子接口（推荐使用）。有三个具体
    ```
    ApplicationContext context = new ClassPathXmlApplicationContext("bean.xml");
    MyBean mybean = context.getBean("Mybean");
-   ````
+  ````
     2. FileSystemXmlApplicationCotext:从文件系统或者URL装载XML配置文件
     3. XmlWebApplicationContext和XmlPortletApplicationContext:仅用于web和入口应用程序。
 
 ## bean属性的注入方式
 - 属性注入
+
+  ![1586693773957](C:\Users\Helmet\AppData\Roaming\Typora\typora-user-images\1586693773957.png)
+
 - 构造函数注入
+
+  ![1586693812596](C:\Users\Helmet\AppData\Roaming\Typora\typora-user-images\1586693812596.png)
+
+- 工厂方法注入（静态工厂，非静态工厂）
+
+  ![1586693829666](C:\Users\Helmet\AppData\Roaming\Typora\typora-user-images\1586693829666.png)
+
+- 泛型依赖注入
 
 ## aop底层的两种实现方式
 - jdk动态代理
@@ -25,6 +37,7 @@ ApplicationContext是BeanFactory的子接口（推荐使用）。有三个具体
 2. 通过构造函数创建动态代理类实例，构造时调用处理器对象作为参数参入。
    
 - CGlib
+  
   > 采用底层的字节码技术，全称是：Code Generation Library，CGLib可以为一个类创建一个子类，在子类中采用方法拦截的技术拦截所有父类方法的调用并顺势织入横切逻辑。
 
 ## Sping事务

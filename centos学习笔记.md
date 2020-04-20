@@ -1,5 +1,5 @@
 
-Linux下的根目录是:/
+/Linux下的根目录是:/
 # CentOS命令
 
 ## 文件具体信息显示：
@@ -8,7 +8,8 @@ Linux下的根目录是:/
   第5到7代表的是所属组的权限,r是可读，w是可写，x是可执行，-是无
   往后显示的依次是所属者的名字，所属组的名字，大小，创建时间，文件或者目录或者连接名
 
-##命令
+## 命令
+
 - `pwd`    	显示当前目录
 - `cd` 	 	进入root的目录：~
 - `cd ../` 	进入上级目录
@@ -130,9 +131,14 @@ Linux下的根目录是:/
 ## 环境变量
 - `source /etc/profile` 使修改过的环境变量生效
   
+
 ##用户操作
 - `su userName` 切换到userName用户
 - `useradd userName` 添加userName 用户
 - `passwd userName` 添加userName密码	
 - `/etc/hostname `在该文件下可以修改主机名
-  
+
+## lrzsz 工具
+ - `yum install -y lrzsz`安装
+ - `sz filename` 可以从服务端下载指定文件名的文件到本地
+ - `rz`选择指定的文件上传到服务器

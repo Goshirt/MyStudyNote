@@ -16,12 +16,12 @@
 - `docker rmi imgId`删除${imgId}的本地镜像，如果该镜像有被容器使用中，会删除失败，根据提示的容器id,先删除指定的容器 ，`-f` 强制删除
 - `docker rm containerId` 删除${containerId}的容器 `-f`强制删除
 - `docker ps` 正在运行的容器，`-a`列出所有容器的详细信息 `-q` 只列出容器Id
-- `docker rm ${docker ps -a -q}`删除所有的容器
-- `docker rm ${docker ps -aq -f status=exited}`删除所有已经退出的容器
+- `docker rm $(docker ps -a -q)`删除所有的容器
+- `docker rm $(docker ps -aq -f status=exited)`删除所有已经退出的容器
 - `docker start containerId` 启动${containerName}容器
 - `docker stop cotainerId` 停止${contianerName} 容器
-- `docker stop ${docker ps -a -q}`停止所有的容器
-- `docker pause containerId`暂停容器，让出cpu,知道遇见`unpause`
+- `docker stop $(docker ps -a -q)`停止所有的容器
+- `docker pause containerId`暂停容器，让出cpu,直到遇见`unpause`
 - `docker unpause containerId`回复运行容器
 - `systemctl daemon-reload` 重启守护进程
 - `docker pull imgName：version` 在默认的仓库中拉取{imgName:version}的镜像到本地
@@ -32,8 +32,6 @@
 - `docker exec -it containerId bash|sh` 以交互的模式一个bash终端进入指定的容器中
 - `docker run -d --restart=always containerId` 启动指定的容器，并且无论容器因何种原因退出，都立即自动重启，
 - `docker run -d --restart=on-failure:3`启动指定的容器，如果容器是非正常退出，则重启容器，最多重启3次
-## docker的配置文件
-##### 配置docker可以远程访问
 ## 镜像 image
 #### 运行镜像
 镜像的运行是在原有的镜像基础上添加一层容器层，对镜像的增删改查操作都只是记录在容器层中，这样就保证多个镜像共享基础镜像而互不干扰，修改的时候使用的是copy-on-write的特性，先把修改的文件从上往下找，找到第一个直接复制到容器层进行修改
@@ -50,7 +48,7 @@ docker会缓存已有的镜像层，构建新镜像时，如果某镜像已经�
 ## dockerfile
 #### dockerfile执行过程
 dockerfile中的每一条指令都会创建一个镜像层，上层依赖下层，只要某一层发生改变，其上面所有层缓存都会失效，也就是只要改变Dockerfile的执行顺序或者修改添加指令，也会使得镜像缓存失效。eg:
- 
+
 Dockerfile one
 > FROM centos
     RUN yum install -y wget
@@ -64,7 +62,7 @@ Dockerfile three
   > FROM centos
     copy testfile /
     RUN yum install -y wget
-    
+
 在执行Dockerfile one 的时候会存在一个执行完`RUN yum install -y wget`的镜像层，当执行Dockerfile two的时候，会使用Dockerfile one时的缓存镜像层，只是在该缓存层中添加多一层`COPY testfile /` 的镜像层，但是当执行Dockerfile three 时，由于顺序的变化，Dockerfile one 的缓存将失效，将会重新的在centos镜像层中一层一层的添加。
 #### dockerfile常用指令
 - `FROM {imageName | imageid}` 指定base镜像
@@ -116,11 +114,82 @@ Dockerfile three
         |权限控制 | 可设置可读，默认为可读可写 | 无法控制，均为可读可写|
         |移植性 | 移植性弱，与host path 绑定 | 移植性强，无须指定host目录|
 
-##配置docker镜像加速地址
+### 配置docker镜像加速地址
+
 1. 在`/etc/docker/daemon.json`(没有该文件时新建一个)添加下边的代码(url为自己在阿里云控制台容器镜像服务获取到的url)：
    `{
-  "registry-mirrors": ["https://XXXX.mirror.aliyuncs.com"]
+    "registry-mirrors": ["https://XXXX.mirror.aliyuncs.com"]
 }`
 2.配置daocloud镜像加速地址（在daocloud.io注册一个账号，获取地址），执行命令
 `curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io`
 1. 然后重启daemon `systemctl daemon-reload`
+
+
+
+### docker实战redis
+##### 主从配置
+
+1. 下载一个redis镜像
+
+    `docker pull redis`
+
+2. 在home目录下准备三个文件夹 one,two,three 用来挂载三个redis容器的目录，并且在每一个文件夹中都存放一个redis.conf配置文件。
+
+3. 在每一个redis.conf中做以下改变
+
+   -  Qno` 改为`daemonize yes`
+
+   - 注释掉`bind 127.0.0.1`
+   
+   - `protected-mode yes` 改为`protected-mode no`
+   
+   - 取消`requiredpass foobared` 的注释，并将`foobared` 改成自己的密码口令
+   
+   - 修改log的文件路径    
+   
+4. 使用下载好的redis镜像，启动三个redis容器,三个redis分别映射宿主机的6379，6380，6381三个端口。redis-one 将作为maste，redis-two和reids-three作为slave
+   
+    - `docker run --name reids-one -p 6379:6379 -v /home/one：/data -v /home/one/reids.conf:/data/redis.conf {imageId}`
+    
+    - `docker run --name reids-two -p 6380:6379 -v /home/two：/data -v /home/two/reids.conf:/data/redis.conf {imageId}`
+    
+    - `docker run --name reids-three-p 6381:6379 -v /home/three：/data -v /home/three/reids.conf:/data/redis.conf {imageId}`ip
+
+5. 使用`docker ps` 检查三个redis容器是否启动成功 。
+
+6. 使用`docker inspect redis-one` 查看redis-one在容器网络中的主机
+
+7. 在代表从库的/home/two,/home/three文件夹下的配置文件redis.conf中加以下配置
+   
+    - `masterauth {password}` password为主master（redis-one的配置文件中设置的密码）的登录密码。（代表主库master的redis.conf也需要加上,否则加入哨兵机制，当master意外挂掉，然后重启变为slave的时候，会由于没有新master的连接密码导致无法从新的master中同步数据）
+    
+    - `slaveof {ip} {port}` {ip}为主master（也就是第五步查看到的redis-one在容器网络中的ip）的主机ip ,port为6379。
+    
+8. 从起reids-two 和 redis-threee 容器 `docker restart redis-two`,`docker restart redis three
+
+9. 用`docker exec -it reids-one bash`进入redis-one容器中，然后输入`redis-cli`启动redis客户端，通过`info replication`可以查看到slave的个数。
+
+##### 哨兵模式（在上边完成一主二从的基础上增加三个哨兵）
+1. 在宿主机/home/redis-volume/ 下新建三个目录作为哨兵容器的挂载目录
+   - `mkdir /home/redis-volume/sentinel-1`
+   - `mkdir /home/redis-volume/sentinel-2`
+   - `mkdir /home/redis-volume/sentinel-3` 
+2. 在redis的安装目录下找到sentinel.conf ,做以下修改
+   - `daemonize no`改为 `daemonize yes`
+   - `logfile "/data/sentinel.log"` 该目录为容器中的目录，所以需要启动哨兵容器之后在哨兵容器中对应的目录下新建该sentinel.log。
+   - `sentinel monitor mymaster 172.17.0.3 6379 2` ip为前边一主二从时master的容器网络中的ip。
+   - `sentinel auth-pass mymaster {password}`password为一主二从中配置的master密码。
+3. 把该文件分别复制到第一步新建的三个目录中。
+4. 启动三个容器作为哨兵，分别映射到主机的23679，26380，26381三个端口，把第一步新建的三个目录挂载到容器中。
+   - `docker run --name sentinel-1 -p 26379:26379 -v /home/redis-volume/sentinel-2:/data -d redis`
+   - `docker run --name sentinel-2 -p 263880:26379 -v /home/redis-volume/sentinel-2:/data -d redis`
+   - `docker run --name sentinel-3 -p 26381:26379 -v /home/redis-volume/sentinel-3:/data -d redis`
+5. 进去其中一个容器sentinel-1
+  - `docker exec -it sentinel-1 bash`
+6. 默认进入的`data`目录，在该目录下新建一个文件`sentinel.log`。
+  - `touch sentinel.log`
+7. 启动哨兵
+  - `redis-sentinel sentinel.conf`由于在第三步的时候把宿主机的目录挂载到容器中了，所以在容器的`data` 目录下会有`sentinel.conf`文件。
+8. 通过查看sentinel.log，可以知道哨兵成功的加入集群中。
+9. 重复4-8步骤，启动另外两个哨兵。
+10. 验证，关闭前面的maste主机，发现其中的一个slave成功的转换为master。

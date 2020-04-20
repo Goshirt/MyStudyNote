@@ -1,4 +1,4 @@
-### 安装
+### 装
 1. 进入指定的文件夹，下载zookeeper安装包
 - `wget http://mirror.bit.edu.cn/apache/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz`
 2. 解压
