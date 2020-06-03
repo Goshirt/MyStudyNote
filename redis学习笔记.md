@@ -56,7 +56,7 @@
 - `sinterstore destination key key2 [key3]` 求两个或者多个集合的交集并将结果存在destination集合中
 - `sunion destination key key2 [key3]` 求两个或者多个集合的并集并将结果存在destination集合中
 - `srandmember key [count]`  随机获取集合中的一个元素，当指定count个数时，随机获取count个元素
-- `spop key` 从集合中弹出一个元素
+- `spop key` 从集合中随机弹出一个元素
  #### zset 有序集合（在集合的基础上为每一个元素加上了一个分数）：
 - `zadd key score member [score member]`  在有序集合中添加一个或者多个元素以及该元素的分数，如果该key不存在则创建，如果该元素存在则更新分数
 - `zscore key member`  获取指定元素的分数

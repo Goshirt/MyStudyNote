@@ -51,17 +51,17 @@ dockerfile中的每一条指令都会创建一个镜像层，上层依赖下层�
 
 Dockerfile one
 > FROM centos
-    RUN yum install -y wget
+RUN yum install -y wget
 
 Dockerfile two
   > FROM centos
-    RUN yum install -y wget
-    COPY testfile /
+RUN yum install -y wget
+COPY testfile /
 
 Dockerfile three 
   > FROM centos
-    copy testfile /
-    RUN yum install -y wget
+copy testfile /
+RUN yum install -y wget
 
 在执行Dockerfile one 的时候会存在一个执行完`RUN yum install -y wget`的镜像层，当执行Dockerfile two的时候，会使用Dockerfile one时的缓存镜像层，只是在该缓存层中添加多一层`COPY testfile /` 的镜像层，但是当执行Dockerfile three 时，由于顺序的变化，Dockerfile one 的缓存将失效，将会重新的在centos镜像层中一层一层的添加。
 #### dockerfile常用指令
@@ -116,15 +116,20 @@ Dockerfile three
 
 ### 配置docker镜像加速地址
 
-1. 在`/etc/docker/daemon.json`(没有该文件时新建一个)添加下边的代码(url为自己在阿里云控制台容器镜像服务获取到的url)：
-   `{
+ 1. 在`/etc/docker/daemon.json`(没有该文件时新建一个)添加下边的代码(url为自己在阿里云控制台容器镜像服务获取到的url)：
+      `{
     "registry-mirrors": ["https://XXXX.mirror.aliyuncs.com"]
 }`
-2.配置daocloud镜像加速地址（在daocloud.io注册一个账号，获取地址），执行命令
+ 2. 配置daocloud镜像加速地址（在daocloud.io注册一个账号，获取地址），执行命令
 `curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io`
-1. 然后重启daemon `systemctl daemon-reload`
 
+ 3. 然后重启daemon `systemctl daemon-reload`
 
+### 安装vi命令
+
+ 1. `apt-get update`
+
+ 2. `apt-get install vim`
 
 ### docker实战redis
 ##### 主从配置
@@ -193,3 +198,32 @@ Dockerfile three
 8. 通过查看sentinel.log，可以知道哨兵成功的加入集群中。
 9. 重复4-8步骤，启动另外两个哨兵。
 10. 验证，关闭前面的maste主机，发现其中的一个slave成功的转换为master。
+
+### docker 实战mysql
+
+#### 安装mysql
+
+1. 拉取自己需要的mysql 版本镜像
+	`docker pull mysql:5.7`
+	
+2. 使用镜像启动应给mysql容器 , 并指定mysql的端口映射以及root的初始密码
+	`docker run -p 3306:3306 --name mysql-test -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7`
+	
+3. 进入mysql容器中
+    `docker exec -it mysql-test bash`
+    
+4. 使用第二步指定的root用户的密码进入容器中的mysql 客户端。
+   `mysql -u root -p 123456`
+   
+5. 修改root用户的远程访问权限
+   `GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123456' WITH GRANT OPTION;`
+   
+   `flush privileges;`
+   
+6. 重启mysql容器
+   `docker start mysql-test`
+
+### docker 实战zookeeper
+1. 拉取镜像
+   `docker pull zookeeper`
+2. 

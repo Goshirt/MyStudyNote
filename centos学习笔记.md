@@ -56,52 +56,105 @@
 - `find / -name fileName` 在路径`/`下查找fileName文件所在的路径
 
 ### 防火墙常用命令
-- `firewall-cmd --zone=pulic --add-port=3306/tcp --permanent` 开发3306端口
--  `systemctl status firewalld` 查看防火墙状态
--  `firewall-cmd --list-ports` 查看防火墙开放的端口
--  `systemctl start firewall` 开启防火墙
+- `firewall-cmd --zone=pulbic --add-port=3306/tcp --permanent` 开发3306端口
 
-## centos 文件夹，文件 名称乱码解决办法
-    1、安装convmv    yum install convmv
-    2、批量递归修改当前目录下的文件名格式    convmv -f GBK -t UTF-8 -r --notest ./*
+- `systemctl status firewalld` 查看防火墙状态
 
+- `firewall-cmd --list-ports` 查看防火墙开放的端口
 
-## 安装mysql后登录mysql 无法登录时
-	vi /etc/my.cnf/ 
-	在文件末尾添加  skip-grant-tables 保存退出
-	登录  mysql -u root 进入mysql
-	use mysql
-	update user set authentication_string = password("123456") where user="root";
-	flush privileges;
-	exit
-	进入 vi /etc/my.cnf/  删除前面添加的skip-grant-tables 保存退出
-	利用刚刚设置的密码登录
-	mysql -u root -p 后输入密码
-	ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx'; 修改密码
-	GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'xxx' WITH GRANT OPTION; 允许远程登录
-	firewall-cmd --zone=public --add-port=3306/tcp --permanent 开放3306端口 如果报错FirewallD is not running
-	输入 systemctl status firewalld 查看防火墙是dead状态
-	firewall-cmd --list-ports   		查看开放的端口
-	开启防火墙 systemctl start firewalld 开启防火墙后再开放3306端口。(服务器重启后会关闭防火墙)
-	修改mysql默认编码，进入配置文件 vi /etc/my.cnf/
-	在Remove leading  前面添加两行内容：
-	character_set_server=utf8
-	init_connect='SET NAMES utf8' 保存并退出
-	重启mysql   systemctl restart mysqld
-	然后进入mysql 检查一下编码，检查编码语句：show variables like '%character%'; 全显示为utf-8成功
+- `systemctl start firewall` 开启防火墙
 
+- ` firewall-cmd --reload` 配置立即生效
 
-## maven项目需要在centos中安装maven
-	wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz 下载maven，下载到根目录        的
-	解压并移动到/home/maven/
-	tar -zxvf apache-maven-3.3.9-bin.tar.gz
-	配置maven路径，先进入配置文件
-	vi /etc/profile
-	在文件末尾添加
-	export M2_HOME=/home/maven/apache-maven-3.3.9
-	export PATH=${M2_HOME}/bin:${PATH}
-	系统级别环境变量配置生效
-	source /etc/profile
+### centos中Tomcat输出控制台
+```
+#进入tomcat安装目录下的logs文件夹 动态打印日志信息
+tail -f catalina.out 
+```
+
+### vim编辑器的常用命令
+- `/` 查找命令
+- `i`输入命令
+-  `n`查找模式下的 下一个
+-  `m`查找模式下的 上一个
+-  `wq!`强制保存并退出
+
+### 查找机器信息常用命令
+- `free -m` `free -h` `free ` 显示内存使用
+- `cat /proc/meninfo` 读出内核的信息并显示
+- `cat /proc/cpuinfo` 读出cpu的信息并显示
+- `df -h` 显示硬盘的使用信息
+- `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
+ ### buff/cache 缓存过高时可以手动清楚缓存 
+- `echo 1 > /proc/sys/vm/drop_caches`  清除pagecache
+- `echo 2 > /proc/sys/vm/drop_caches` 清除回收slab分配器中的对象（包括目录项缓存和inode缓存）
+- `echo 3 > /proc/sys/vm/drop_caches`清除pagecache和slab分配器中的缓存对象
+###  传输命令
+- `scp [-r]|[-P] /home/data/test.txt 192.168.2.2:/home/data/` 把本机、home/data/test.txt 文件传输到192.168.2.2 的/home/data/ 目录下，如果传输的目录，则需要加上`-r` ，要指定端口需要加上`-P port`
+### 环境变量
+- `source /etc/profile` 使修改过的环境变量生效
+  
+### 用户操作
+- `su userName` 切换到userName用户
+- `useradd userName` 添加userName 用户
+- `passwd userName` 添加userName密码	
+- `cat /etc/passwd | grep -v /sbin/nologin | cut -d : -f 1` 查看当前可以登录的用户
+- `/etc/hostname `在该文件下可以修改主机名
+
+## lrzsz 工具
+ - `yum install -y lrzsz`安装
+ - `sz filename` 可以从服务端下载指定文件名的文件到本地
+ - `rz`选择指定的文件上传到服务器
+
+## 常见问题解决  
+
+1.  centos 文件夹，文件 名称乱码解决办法
+```
+#安装convmv    
+yum install convmv
+#批量递归修改当前目录下的文件名格式    
+convmv -f GBK -t UTF-8 -r --notest ./*
+```
+
+2. 安装mysql后登录mysql 无法登录时
+```
+vi /etc/my.cnf/ 
+#在文件末尾添加  
+skip-grant-tables 
+#保存退出
+#使用root用户登录  
+mysql -u root 
+#进入mysql
+use mysql
+update user set authentication_string = password("123456") where user="root";
+flush privileges;
+exit
+#修改my.文件 
+vi /etc/my.cnf/  
+#删除前面添加的
+skip-grant-tables 
+保存退出
+#利用刚刚设置的密码登录
+mysql -u root -p 后输入密码
+#修改密码
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'xxx';
+#允许远程登录,BY后面的密码改为自己root用户的实际密码
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'xxx' WITH GRANT OPTION; 
+#开放3306端口
+firewall-cmd --zone=public --add-port=3306/tcp --permanent 
+#如果报错FirewallD is not running 检查防火墙状态以及开放的端口
+#修改mysql默认编码，进入配置文件 
+vi /etc/my.cnf/
+#在Remove leading  前面添加两行内容：
+character_set_server=utf8
+init_connect='SET NAMES utf8' 
+#保存并退出
+#重启mysql   
+systemctl restart mysqld
+#然后进入mysql 检查一下编码，检查编码语句
+show variables like '%character%'; 
+#全显示为utf-8成功
+```
 
 ## centos中Tomcat输出控制台
 	进入tomcat安装目录下的logs文件夹 动态打印日志信息
@@ -142,3 +195,6 @@
  - `yum install -y lrzsz`安装
  - `sz filename` 可以从服务端下载指定文件名的文件到本地
  - `rz`选择指定的文件上传到服务器
+  ```
+ma
+  ```

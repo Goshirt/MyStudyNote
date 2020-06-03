@@ -68,3 +68,29 @@ namenode的存储的数据叫做元数据，包含hdfs的目录结构以及每�
 - map task 的数量由文件的 文件数、文件大小、块大小、以及split大小有关 ，一个map task处理一个切块，默认切开大小为128M。
 
 - reduce task 的运行数量由partitions分区决定，当在客户端定义的reduce task数量大于partitions分区的数量时，实际参与运行的reduce task数量为partitions分区的数量。
+
+  
+
+1. 首先job划分输入切片。job客户端会根据输入目录进行扫描，遍历每个文件的大小，然后根据配置文件的块大小进行划分。
+2. 根据划分的切片产生对应数量的map task。
+3. 每个map task读取自己的split切片。 通过TextInputFormat 生成一个LineRecordReader，反复调用next() ，一行一行读取文件内容，每一行产生一对kv，k是行的起始偏移量，v是行的内容。
+4. WcMapper的map(k,v,context)把kv键值对输出到MapOutputCollector(环形缓冲区，100M)。
+5. Spiller读取环形缓冲区的kv对，首先按照Partitioner的getPartition（）进行分区，再按照key的compareTo进行排序输出到本地文件中
+6. 如果需要可以自定义个Combiner进行局部聚合，形成新的文件
+7. reduce task 通过http下载不同map task产生的同一个区号的文件进行合并排序，然后通过LineRecordWriter的wirter方法写入到HDFS中。
+
+
+
+## Hive
+
+   Hive通过sql从hdfs中获取文件，转化为mapreduce执行查询，只能执行查询操作，速度偏慢，不适用于实时查询。
+
+## Hbase
+
+   NoSql数据库，持久化存在HDFS中，支持增删改查，分布式的数据库系统。
+
+#### 工作原理
+
+
+
+   1. region server 中有一个内存区域存放热数据，所有改变表结构的操作都会同时在hdfs中记录log日志，即使region server 挂掉也可以通过日志恢复。
