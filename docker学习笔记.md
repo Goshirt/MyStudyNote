@@ -1,4 +1,4 @@
-
+Q
 
 ## centos安装docker及常用命令
 #### 安装步骤
@@ -32,6 +32,7 @@
 - `docker exec -it containerId bash|sh` 以交互的模式一个bash终端进入指定的容器中
 - `docker run -d --restart=always containerId` 启动指定的容器，并且无论容器因何种原因退出，都立即自动重启，
 - `docker run -d --restart=on-failure:3`启动指定的容器，如果容器是非正常退出，则重启容器，最多重启3次
+- `docker port containerId` 查看容器的端口映射
 ## 镜像 image
 #### 运行镜像
 镜像的运行是在原有的镜像基础上添加一层容器层，对镜像的增删改查操作都只是记录在容器层中，这样就保证多个镜像共享基础镜像而互不干扰，修改的时候使用的是copy-on-write的特性，先把修改的文件从上往下找，找到第一个直接复制到容器层进行修改
@@ -71,7 +72,7 @@ RUN yum install -y wget
 - `ADD` 与`COPY`相似
 - `ENV` 设置环境变量，环境变量可以被后面的指令使用
 - `EXPOSE` 指定容器进程监听的端口
-- `VOLUME` 将文件或目录声明为volume
+- `VOLUME` 所有由该dockerFile创建的镜像生成的容器都会新建VOLUME指定的目录，将文件或目录声明为volume
 - `WORKDIR` 为后面RUN,CMD,ENTRYPOINT,ADD,COPY 指定镜像中的当前工作目录
 - `RUN`在容器中运行指定的命令
 - `CMD` 容器启动时指定的命令，可以有多个`CMD`命令，但是只有最后一个会生效
@@ -87,6 +88,40 @@ RUN yum install -y wget
   3. ENTRYPOINT: 让容器以应用程序或者服务的形式运行，与CMD很相似，但是ENTRYPOINT不会被忽略，一定会执行，即使运行docker run 时指定了其他命令，而且当使用Exec格式时，还可以通过CMD命令提供额外的参数，有两种格式：
       - Exec格式：ENTRYPOINT ["executable","param1","param2"] (推荐格式) eg: `ENTRYPOINT ["/bin/echo","hello"] CMD ["world"]` 当通过docker run -it 启动容器时会输出: hello word
       - Shell格式：ENTRYPOINT command param1 param2
+
+
+
+#### docker file 实战部署jar包
+
+```dockerfile
+# 基础镜像
+FROM centos:7
+# 维护者信息
+MAINTAINER helmet 13672875006@163.com
+VOLUME /tmp
+#自动安装依赖
+RUN cd /etc/yum.repos.d/ \
+        && yum -y install wget \
+    && wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo \
+    && yum clean all \
+    && yum makecache \
+    && yum update -y \
+    &&  yum -y  install  java-1.8.0-openjdk java-1.8.0-openjdk-devel  \
+ # 设置启动脚本
+     && touch /etc/init.d/start.sh \
+     && touch /home/catalina.out \
+     && chmod +x /etc/init.d/start.sh \
+     && echo "#!/bin/bash  " >> /etc/init.d/start.sh \
+     && echo "java -jar /home/mall-study-base-0.0.1-SNAPSHOT.jar" >> /etc/init.d/start.sh
+ADD mall-study-base-0.0.1-SNAPSHOT.jar /home/mall-study-base-0.0.1-SNAPSHOT.jar
+EXPOSE  80  8080 81
+ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
+#docker build -t mall-study:centos .
+#docker run --privileged=true  -itd --name test -v /sys/fs/cgroup:/sys/fs/cgroup:ro -p 8080:8080  mall-study
+```
+
+
+
 ## 容器底层技术 cgroup 和 namespace
 ## 容器的网络
 `docker network ls`可以查看到docker的网络情况，默认安装了三种网络,在创建容器是可以通过`--network={type}`指定使用的网络，此外还可以自己创建user-defind网络,同一网络下的容器可以相互通信，不同网络下的容器通信时需要额外的设置，例如`docker network connect {networkName} {containerId}`将现有容器加入到指定的网络中
@@ -108,11 +143,11 @@ RUN yum install -y wget
      - 两者的区别：
         |   不同点 |   bind mount  |   docker managed  |
         |:------- |:----------|:----------- |
-        |volume的位置 | 可任意指定| /var/lib/docker/volumes/..|
-        |对已有mount point 的影响 | 隐藏并替换volume | 原有数据复制到volumes
-        |对单文件的指出 | 支持 | 不支持|
-        |权限控制 | 可设置可读，默认为可读可写 | 无法控制，均为可读可写|
-        |移植性 | 移植性弱，与host path 绑定 | 移植性强，无须指定host目录|
+        | volume的位置 | 可任意指定| /var/lib/docker/volumes/..|
+        | 对已有mount point 的影响 | 隐藏并替换volume | 原有数据复制到volumes |
+        | 对单文件的指出 | 支持 | 不支持|
+        | 权限控制 | 可设置可读，默认为可读可写 | 无法控制，均为可读可写|
+        | 移植性 | 移植性弱，与host path 绑定 | 移植性强，无须指定host目录|
 
 ### 配置docker镜像加速地址
 
@@ -226,4 +261,67 @@ RUN yum install -y wget
 ### docker 实战zookeeper
 1. 拉取镜像
    `docker pull zookeeper`
-2. 
+
+
+
+### docker 实战jenkins
+
+1. 拉取镜像
+
+   `docker pull jenkins`
+
+2. 启动容器，由于jenkins在容器中是以jenkins用户启动的，当宿主机的用户为root时，启动容器会报错，因此需要使用`-u root` 指定容器以root用户启动
+
+   ```
+   docker run ^
+     -u root ^
+     --rm ^
+     -d ^
+     -p 8080:8080 ^
+     -p 50000:50000 ^
+     -v /home/jenkins-volume:/var/jenkins_home ^
+     -v /var/run/docker.sock:/var/run/docker.sock ^
+     jenkinsci/blueocean
+   ```
+
+   可选 `/var/run/docker.sock`  表示Docker守护程序通过其监听的基于Unix的套接字。 该映射允许 `jenkinsci/blueocean`容器与Docker守护进程通信， 如果`jenkinsci/blueocean` 容器需要实例化其他Docker容器，则该守护进程是必需的。 如果运行声明式管道，其语法包含[`agent`](https://www.jenkins.io/zh/doc/book/installing/#pipeline/syntax#agent)部分用 `docker`
+
+   - 例如， `agent { docker { ... } }` 此选项是必需的
+
+3. 通过 http://192.168.42.4:8080/ 可以访问到Jenkins的管理页面
+
+### docker 实战gitlab
+
+1. 拉取镜像
+
+   ` docker pull gitlab/gitlab-ce `
+
+2. 新建三个文件夹，用来作为gitlab 的数据卷映射
+
+   - `mkdir /home/gitlab/data`
+   - `mkdir /home/gitlab/etc`
+   - `mkdir /home/gitlab/log`
+
+3.  启动容器，并挂载volume
+
+   `docker run -p 8443:443 -p 8090:80 -p 222:22 -d --name gitlab --privileged=true --restart unless-stopped -v /home/gitlab/etc:/etc/gitlab -v /home/gitlab/log:/var/log/gitlab -v /home/gitlab/data:/var/opt/gitlab gitlab/gitlab-ce`
+
+4. 然后关闭容器，进行一些必要的配置更改
+
+   - `docker stop gitlab`
+   - vi /homegitlab/etc/gitlab.rb`，修改external_url为部署gitlab宿主机的地址，unicorn['port']为宿主机映射到容器80端口的端口
+
+   ```
+   external_url='192.168.42.5'
+   unicorn['port'] = 8090
+   ```
+
+   - `vi /home/gitlab/data/gitlab-rails/etc/gitlab.yml ` ，将host值改为宿主机的ip，port改为宿主机映射到容器80端口的端口
+
+   ```
+   host: 192.168.42.5
+   port: 8090
+   https:false
+   ```
+
+   

@@ -84,16 +84,26 @@ ApplicationContext是BeanFactory的子接口（推荐使用）。有三个具体
 		<aop:advisor advice-ref="txAdvice" pointcut-ref="point"/>
 	</aop:config>
    ```
-###### 事务的传播性
+###### 事务的传播性 @Transactionl 的propagation属性可以设置
 - `propagation_requierd`：如果当前没有事务，就新建一个事务，如果已存在一个事务中，加入到这个事务中，这是Spring默认的选择。
 - `propagation_supports`：支持当前事务，如果没有当前事务，就以非事务方法执行。
 - `propagation_mandatory`：使用当前事务，如果没有当前事务，就抛出异常。
-- `propagation_required_new`：新建事务，如果当前存在事务，把当前事务挂起。
+- `propagation_required_new`：无论当前事务是否存在，都会创建薪的事务运行。
 - `propagation_not_supported`：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
 - `propagation_never`：以非事务方式执行操作，如果当前事务存在则抛出异常。
-- `propagation_nested`：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与propagation_required类似的操作
+- `propagation_nested`：在当前方法调用子方法时，如果也设置了事务且子方法发生异常，只回滚子方法执行过的sql,而不回滚当前方法的事务
+
+###### 事务的隔离级别 @Transactionl 的isolation属性可以设置
+- 未提交读
+- 读已提交
+- 可重复读
+- 串行化
+
 ###### @Transactional事务的失效
 1. 是否用于public方法上，因为@Transactional的作用范围是public
 2. 是否抛出了checked异常，checked异常不回滚，通过`@Transactional(rollbackFor=Exception.class) `可以解决checked异常不回滚的问题
 3. 数据库的引擎是否支持事务
 4. 是否开启了对注解的解析。`<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>`
+
+###### 枚举类在pojo中的使用
+1.通过定义一个类继承使用BaseTypeHandler

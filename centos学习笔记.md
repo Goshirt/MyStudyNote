@@ -78,6 +78,8 @@ tail -f catalina.out
 -  `n`查找模式下的 下一个
 -  `m`查找模式下的 上一个
 -  `wq!`强制保存并退出
+-  `:`末行输入模式
+-  `s/s1/s2/g`在末行模式下，全局将字符串s1替换为s2
 
 ### 查找机器信息常用命令
 - `free -m` `free -h` `free ` 显示内存使用
@@ -85,6 +87,7 @@ tail -f catalina.out
 - `cat /proc/cpuinfo` 读出cpu的信息并显示
 - `df -h` 显示硬盘的使用信息
 - `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
+- ` netstat -tunlp|grep 端口` 查看端口占用 ，也可以安装 lsof  `yum install lsof`,然后使用共`lsof -i:端口`
  ### buff/cache 缓存过高时可以手动清楚缓存 
 - `echo 1 > /proc/sys/vm/drop_caches`  清除pagecache
 - `echo 2 > /proc/sys/vm/drop_caches` 清除回收slab分配器中的对象（包括目录项缓存和inode缓存）
@@ -93,18 +96,12 @@ tail -f catalina.out
 - `scp [-r]|[-P] /home/data/test.txt 192.168.2.2:/home/data/` 把本机、home/data/test.txt 文件传输到192.168.2.2 的/home/data/ 目录下，如果传输的目录，则需要加上`-r` ，要指定端口需要加上`-P port`
 ### 环境变量
 - `source /etc/profile` 使修改过的环境变量生效
-  
 ### 用户操作
 - `su userName` 切换到userName用户
 - `useradd userName` 添加userName 用户
 - `passwd userName` 添加userName密码	
 - `cat /etc/passwd | grep -v /sbin/nologin | cut -d : -f 1` 查看当前可以登录的用户
 - `/etc/hostname `在该文件下可以修改主机名
-
-## lrzsz 工具
- - `yum install -y lrzsz`安装
- - `sz filename` 可以从服务端下载指定文件名的文件到本地
- - `rz`选择指定的文件上传到服务器
 
 ## 常见问题解决  
 
@@ -162,39 +159,41 @@ show variables like '%character%';
 	启动Tomcat
 	安装目录/bin/startup.sh
 
-## vim编辑器的常用命令
- - `/` 查找命令
-- `i`输入命令
--  `n`查找模式下的 下一个
--  `m`查找模式下的 上一个
--  `wq!`强制保存并退出
-
-## 查找机器信息常用命令
-- `free -m` `free -h` `free ` 显示内存使用
-- `cat /proc/meninfo` 读出内核的信息并显示
-- `cat /proc/cpuinfo` 读出cpu的信息并显示
-- `df -h` 显示硬盘的使用信息
-- `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
  ## buff/cache 缓存过高时可以手动清楚缓存 
 - `echo 1 > /proc/sys/vm/drop_caches`  清除pagecache
 - `echo 2 > /proc/sys/vm/drop_caches` 清除回收slab分配器中的对象（包括目录项缓存和inode缓存）
 - `echo 3 > /proc/sys/vm/drop_caches`清除pagecache和slab分配器中的缓存对象
-## 传输命令
-- `scp [-r]|[-P] /home/data/test.txt 192.168.2.2:/home/data/` 把本机、home/data/test.txt 文件传输到192.168.2.2 的/home/data/ 目录下，如果传输的目录，则需要加上`-r` ，要指定端口需要加上`-P port`
-## 环境变量
-- `source /etc/profile` 使修改过的环境变量生效
+
+
+
+### 克隆虚拟机出现的问题
+
+- ` systemctl restart network` 时出现 `failed to start lsb: bring up/down networking`的错误解决办法
+
+  ```
+  # vim /etc/sysconfig/network-scripts/ifcfg-enoxxxx      这里的ifcfg-enoxxxx后面的xxxx根据不同机器配置不一样
+  在网络配置文件中加入Mac地址和IP地址：
+  BOOTPROTO=static   # 这个的值改为static
+  HWADDR=00:0C:29:90:83:04  # 这里填写虚拟机的真实Mac地址
+  IPADDR=192.168.134.128  #这里填写虚拟机的可用IP地址
+  NETMASK=255.255.255.0
+  GATEWAY=192.168.134.0
+  
+  重启机器 reboot
+  
+  重启后执行如下命令，不用管是干啥用的，简单粗暴：
+  systemctl enable NetworkManager-wait-online.service
+  systemctl restart network
+  systemctl stop NetworkManager
+  systemctl disable NetworkManager
+  systemctl restart network 
+  
+  ```
+
   
 
-##用户操作
-- `su userName` 切换到userName用户
-- `useradd userName` 添加userName 用户
-- `passwd userName` 添加userName密码	
-- `/etc/hostname `在该文件下可以修改主机名
-
 ## lrzsz 工具
+
  - `yum install -y lrzsz`安装
  - `sz filename` 可以从服务端下载指定文件名的文件到本地
  - `rz`选择指定的文件上传到服务器
-  ```
-ma
-  ```

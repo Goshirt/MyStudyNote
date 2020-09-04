@@ -81,6 +81,59 @@ http{
 
 一个http块可以有多个server块，一个server块可以有多个location块，server类似于一个服务，location相当于资源。
 
+
+
+## 负载均衡
+
+当多个主机提供同一服务时，通过使用upstream 解决负载均衡。
+
+1. 首先在http节点下添加upstram节点
+
+   ```nginx
+   // test为命名,该upsteam会使用默认的轮询的方式进行三个ip的负载均衡
+   upstream test {
+       #指定的负载均衡算法为通过ip hash
+       ip_hash; 
+       # weight 可以设置权重
+   	server 192.168.42.2:7071 weight=5;
+   	server 192.168.42.3:7071 weight=10;
+   	server 192.168.42.4:7071 weight=5;
+   }
+   ```
+
+   
+
+2. 将server节点下的location节点中的proxy_pass配置为：http://+upsteamName 名称即可
+
+   ```nginx
+    server{
+           # 服务监听的端口
+           listen 80;
+           # 服务名字
+           server_name localhost;
+           # 指定当前server默认的访问资源,当location中配置有index时，以location的为准
+           index index.html;
+           # 当访问的时localhost:80/时反向代理到test中的其中一台主机的nginx安装目录下的/test/index.htm
+           location /{
+               # localhost:80/ 相当于访问nginx安装目录下的/test/index.htm
+           	root /test;
+               # 默认访问的资源为root指定目录下的index.html或index.htm
+               index index.html index.htm;
+           	proxy_pass http://test;
+           }
+       }
+   ```
+
+   
+
+3. 常用的负载均衡算法
+
+   - ip_hash : 通过ip进行hash，达到同一个ip请求转移到相同的服务机中，解决session问题
+   - 轮询 : 默认
+   - weight : 设置权重，权重高的机器，访问到的概率越高
+   - fair(第三方) :   根据页面大小和加载时间长短智能地进行负载均衡，也就是根据后端服务器的响应时间 来分配请求，响应时间短的优先分配。Nginx本身不支持fair，如果需要这种调度算法，则必须安装upstream_fair模块 
+   -  url_hash(第三方) ：  访问的URL的哈希结果来分配请求，使每个URL定向到一台后端服务器，可以进一步提高后端缓存服务器的效率。Nginx本身不支持url_hash，如果需要这种调度算法，则必须安装Nginx的hash软件包。 
+
 ## 常用的一些指令
 
 - `nginx -v` 查看版本
