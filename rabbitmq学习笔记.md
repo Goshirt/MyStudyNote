@@ -63,9 +63,9 @@ Binding是交换机将消息路由给队列所遵循的规则。如果要指示�
 2. 解决方案
 
 - 消息持久化落库，对消息状态进行打标，后台轮旬数据库中每没有完成的消息，重发，轮旬次数边界值的设定。由于第一步的两次数据库操作，在分布式高并发场景下，数据库性能瓶颈。
-  ![消息持久化落库](G:/study_note/MyStudyNote/img/rabbitmq/100one.png)
+  ![消息持久化落库](./img/rabbitmq/100one.png)
 - 消息的延迟投递 ，做二次确认，回调检查。step1与step2发送的是同一条消息到不同的队列，并且step2发送的可以根据业务设置相应的延迟时间，step1发送到消息进过消费者消费之后，返回一个新的信息到mq新的队列，callback service 监听该队列，并将消息持久化到msg DB，当step2发送的延迟消息到达mq时，触发对应的监听器，callback service 去msg DB 查找，如果找不到，发起rpc给上游服务器，重新执行。适合分布式高并发场景
-  ![消息持久化落库](G:/study_note/MyStudyNote/img/rabbitmq/100two.png)
+  ![消息持久化落库](./img/rabbitmq/100two.png)
 ## 如何避免消费重复消费
 1. 消费端实现幂等性，确保消息不会消费多次，即使收到多条一样的消息。
 
@@ -74,7 +74,7 @@ Binding是交换机将消息路由给队列所遵循的规则。如果要指示�
   (1). select count(1) from t_order where Id = 唯一Id + 指纹码。 先查找数据，查不到数据insert ,查到就不insert。
 - 利用redis的原子性
 ## Broker Confirm消息确认
-通过rabbitmq broker的消息确认机制可以知道消息是否已经送达队列。使用comfirm模式的时候，在生产者中的channel中一定要指定消息的投递模式为confirm，通过代码：`channel.confirmSelect();`channel开启Confirm模式之后，所有在该信道上发布的消息会被指派一个唯一的Id,会以confirm.select为基础从1开始计数，一旦消息投递到匹配的队列之后，broker就会发送一个ack给生产者，包含消息的唯一Id, 如果消息和队列是可持久化的，那么确认消息会将消息写入磁盘之后发出。
+通过rabbitmq broker的消息确认机制可以知道消息是否已经送达rabbitmq。使用comfirm模式的时候，在生产者中的channel中一定要指定消息的投递模式为confirm，通过代码：`channel.confirmSelect();`channel开启Confirm模式之后，所有在该信道上发布的消息会被指派一个唯一的Id,会以confirm.select为基础从1开始计数，一旦消息投递到broker之后，broker就会发送一个ack给生产者，包含消息的唯一Id, 如果消息和队列是可持久化的，那么确认消息会将消息写入磁盘之后发出。
 
 有三种消息确认方式：
 
@@ -156,7 +156,7 @@ Binding是交换机将消息路由给队列所遵循的规则。如果要指示�
 
 ## Broker Return消息机制 
 
-return消息机制可以监听不可路由的消息，与comfirm模式的区别在于comfirm监听的是队列是路由可达的情况下时候到达了指定的队列中，return监听的是消息能否路由到队列中。
+return消息机制可以监听不可路由的消息，与comfirm模式的区别在于comfirm监听的是 消息发送到 Broker 后触发回调，确认消息是否到达 Broker 服务器，**也就是只确认是否正确到达 Exchange 中** ，return监听的是消息能否路由到队列中。
 
 ```java
 channel.addReturnListener(new ReturnListener() {
@@ -202,7 +202,7 @@ channel.basicConsume(queueName, false, new MyConsumer(channel));
 
   ```java
   //requeue：true重回队列
-  channel.basicNack(deliveryTag: e.DeliveryTag, multiple: false, requeue: false);
+  channel.basicNack(deliveryTag: e.DeliveryTag, multiple: false, requeue: true);
   ```
 
 ## Consumer 限流
@@ -219,6 +219,7 @@ channel.basicConsume(queueName, false, new MyConsumer(channel));
 ## 死信队列
 当消息变成一个死信之后，如果这个消息所在的队列存在x-dead-letter-exchange参数，那么它会被发送到x-dead-letter-exchange对应值的交换器上，这个交换器就称之为死信交换器，与这个死信交换器绑定的队列就是死信队列。
 成为死信消息有三种情况：
+
 1. 消息被拒绝（basicReject或者basicNack,并且设置 requeue 参数的值为 false。
 
 2. 消息过期。有两种方式可以设置过期时间，一种通过队列设置，另一种直接通过消息的properties属性设置。
@@ -268,7 +269,7 @@ channel.basicConsume(queueName, true, new MyConsumer(channel));
 
 可以利用死信队列以及过期时间做延时队列，根据需求，给消息设置对应的过期时间，并给该队列声明一个`x-dead-letter-exchange`属性，当过期时间一到，消息进入对应的死信队列，消费者就只需要监听死信队列消费，就可以达到延时队列的效果。如下图：
 
-![rabbitmq-延迟队列](D:\file\study_note\MyStudyNote\img\rabbitmq\rabbitmq-延迟队列.png)
+![rabbitmq-延迟队列](.\img\rabbitmq\rabbitmq-延迟队列.png)
 
 ## rabbitmq 集群架构模式
 1. 主备模式（并发数据量不大的时候使用），一主多备，主节点提供读写，只有当主节点挂掉之后，备份节点才升为主节点

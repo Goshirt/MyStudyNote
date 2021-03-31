@@ -177,7 +177,7 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
 
 3. 在每一个redis.conf中做以下改变
 
-   -  Qno` 改为`daemonize yes`
+   -  `daemonize  no` 改为`daemonize yes`
 
    - 注释掉`bind 127.0.0.1`
    
@@ -185,7 +185,7 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    
    - 取消`requiredpass foobared` 的注释，并将`foobared` 改成自己的密码口令
    
-   - 修改log的文件路径    
+   - 修改log的文件路径    /
    
 4. 使用下载好的redis镜像，启动三个redis容器,三个redis分别映射宿主机的6379，6380，6381三个端口。redis-one 将作为maste，redis-two和reids-three作为slave
    
@@ -325,3 +325,46 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    ```
 
    
+
+5. 修改gitlab clone的http端口，进入容器中，然后 
+
+   ` vi /opt/gitlab/embedded/service/gitlab-rails/config/gitlab.yml `
+
+6. 修改port端口
+
+   ```yml
+   ## GitLab settings
+   gitlab:
+       ## Web server settings (note: host is the FQDN, do not include http://)
+       host: 10.119.116.160
+       port: 8181
+       https: false
+   ```
+
+### docker rabbitmq
+1. 拉取镜像
+
+   ```shell
+   $ docker pull rabbitmq:management
+   ```
+
+   
+
+2. 启动
+
+   ```shell
+   $ docker run -d -p 5671:5671 -p 5672:5672 -p 15672:15672 -v /home/data/rabbitmq:/etc/rabbitmq -v /home/data/rabbitmq:/var/lib/rabbitmq -v /home/data/rabbitmq:/var/log/rabbitmq --name rabbit-dc --restart always -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:management
+   ```
+
+   
+
+3. 进入容器，开启控制台插件
+
+   ```shell
+   $ docker exec -it rabbit-dc
+   $ rabbitmq-plugins enable rabbitmq_management
+   ```
+
+   
+
+4. 
