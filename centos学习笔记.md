@@ -152,6 +152,15 @@ systemctl restart mysqld
 show variables like '%character%'; 
 #全显示为utf-8成功
 ```
+3. sh脚本CRLF格式转LF。
+
+   ```
+   sed -i 's/\r$//' [file] 
+   ```
+
+   
+
+4. 
 
 ## centos中Tomcat输出控制台
 	进入tomcat安装目录下的logs文件夹 动态打印日志信息
@@ -197,3 +206,4 @@ show variables like '%character%';
  - `yum install -y lrzsz`安装
  - `sz filename` 可以从服务端下载指定文件名的文件到本地
  - `rz`选择指定的文件上传到服务器
+

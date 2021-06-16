@@ -1,0 +1,269 @@
+## 注意事项
+
+1. xxl-job，安装xxl-job 需要提前初始化数据库,数据库脚本`tables_xxl_job.sql`
+
+   
+
+## 常用的中间件部署
+
+```yml
+version: "3.4"
+services:
+  # redis
+  redis:
+    restart: always
+    image: redis:5.0
+    container_name: redis
+    privileged: true
+    command: redis-server --requirepass eosadmin
+    volumes:
+      - ./redisdata:/data:rw
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8001:6379
+
+  # zookeeper
+  zookeeper:
+    image: docker.io/zookeeper:3.4.13
+    container_name: zookeeper
+    environment:
+      - ZOO-MY-ID=1
+      - ZOO-SERVERS=server.1=0.0.0.0:2888:3888
+    ports:
+      - 8002:2181
+      - 2888:2888
+      - 3888:3888
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  # elasticsearch
+  elasticsearch:
+    image: elasticsearch:6.8.12
+    container_name: elasticsearch
+    environment:
+      - "ES-JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=CollectorDBCluster
+      - node.master=true
+      - node.data=true
+      - thread-pool.bulk.queue-size=1000
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8003:9200
+      - 9300:9300
+
+  # kafka    
+  kafka:
+    image: kafka:2.12-2.1.1
+    container_name: kafka
+    volumes:
+      - ./kafka/server.properties:/opt/kafka/config/server.properties
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8004:9092
+    links:
+      - zookeeper
+    depends_on:
+      - zookeeper
+
+  # filebeat    
+  filebeat:
+    image: elastic/filebeat:6.8.12
+    privileged: true
+    container_name: filebeat
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./filebeat/log:/usr/share/filebeat/mylog
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /etc/localtime:/etc/localtime:ro
+    command: ['--strict.perms=false']
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    stdin_open: true
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '50'
+    links:
+       - kafka
+    depends_on:
+       - kafka
+
+  # logstash     
+  logstash:
+    image: logstash:6.8.12
+    container_name: logstash
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8005:5000
+    links:
+      - elasticsearch
+      - kafka
+    depends_on:
+      - elasticsearch
+      - kafka
+
+  # kibana    
+  kibana:
+    image: kibana:6.8.12
+    container_name: kibana
+    ports:
+      - 8006:5601
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:rw
+      - /etc/localtime:/etc/localtime:ro
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+
+  # nacos    
+  nacos:
+    image: nacos/nacos-server:latest
+    container_name: nacos-standalone
+    environment:
+    - PREFER_HOST_MODE=nacos
+    - MODE=standalone #单机启动
+    - NACOS_AUTH_ENABLE=true #开启鉴权
+    volumes:
+    - ./nacos/log/:/home/nacos/logs
+    - ./nacos/custom.properties:/home/nacos/init.d/custom.properties
+    - /etc/localtime:/etc/localtime:ro
+    ports:
+    - "8007:8848"
+
+  # skywalking-oap
+  skywalking-oap:
+    image: apache/skywalking-oap-server:8.3.0-es6
+    container_name: skywalking-oap
+    restart: always
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
+    ports:
+      - 8008:11800
+      - 8009:12800
+    environment:
+      TZ: Asia/Shanghai
+
+  # skywalking-ui   
+  skywalking-ui:
+    image: apache/skywalking-ui:8.3.0
+    container_name: skywalking-ui
+    depends_on:
+      - skywalking-oap
+    links:
+      - skywalking-oap
+    restart: always
+    ports:
+      - 8010:8080
+    environment:
+      collector.ribbon.listOfServers: skywalking-oap:12800
+      security.user.admin.password: sc1234567
+
+  # mysql
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: mhemip2269!@#
+      MYSQL_DATABASE: eos
+      MYSQL_USER: eos
+      MYSQL_PASSWORD:  eosadmin
+    restart: always
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+      --max_allowed_packet=128M
+    volumes:
+      - ./data:/var/lib/mysql
+    ports:
+      - 8011:3306
+  
+  # minio
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ACCESS_KEY: mhemip
+      MINIO_SECRET_KEY: scmhemip2269
+    ports:
+      - 8012:9000
+    restart: always
+    container_name: minio
+    command: server /data
+    logging:
+      options:
+        max-size: "200M" # 最大文件上传限制
+        max-file: "10"
+    volumes:
+      - ./minio_data:/data
+      - /etc/localtime:/etc/localtime:ro   
+  
+  #rabbitmq    
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=sc1234567
+    hostname: rabbitmq
+    privileged: true
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq #挂载 RabbitMQ数据
+      - ./rabbitmq/log:/var/log/rabbitmq #挂载 RabbitMQ日志
+    ports:
+      - "8013:15672"
+      - "8014:5672"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  
+  # seata
+  seata:
+    image: seataio/seata-server
+    container_name: seata
+    hostname: seata
+    ports:
+      - "8015:8091"
+    environment:
+      - SEATA_PORT=8091
+      - STORE_MODE=file
+
+  # sentinel    
+  sentinel:
+    image: bladex/sentinel-dashboard
+    container_name: sentinel
+    ports:
+      - 8016:8858
+
+  # xxljob    
+  xxljob:
+    image: xuxueli/xxl-job-admin:2.2.0
+    container_name: xxljob
+    ports:
+      - "8017:8080"
+    environment:
+      PARAMS: '--spring.datasource.url=jdbc:mysql://172.16.96.161:8001/xxl_job?Unicode=true&characterEncoding=UTF-8 --spring.datasource.username=eos  --spring.datasource.password=eosadmin' 
+
+```
+

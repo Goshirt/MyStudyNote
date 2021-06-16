@@ -33,6 +33,10 @@ Q
 - `docker run -d --restart=always containerId` 启动指定的容器，并且无论容器因何种原因退出，都立即自动重启，
 - `docker run -d --restart=on-failure:3`启动指定的容器，如果容器是非正常退出，则重启容器，最多重启3次
 - `docker port containerId` 查看容器的端口映射
+- ` docker network create --subnet=172.20.0.0/16 extnetwork ` 创建一个新的网络，名称为extnetwork
+- ` docker network rm extnetwork ` 删除指定的网络extnetwork
+- `docker cp {sourceFile} {containerName}:{path} ` 把宿主机的指定路径复制到容器中的指定路径
+- `docker cp {containerName}:{file} {sourcePath}` 把容器中的文件复制到宿主机指定路径中
 ## 镜像 image
 #### 运行镜像
 镜像的运行是在原有的镜像基础上添加一层容器层，对镜像的增删改查操作都只是记录在容器层中，这样就保证多个镜像共享基础镜像而互不干扰，修改的时候使用的是copy-on-write的特性，先把修改的文件从上往下找，找到第一个直接复制到容器层进行修改
@@ -134,6 +138,21 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
 ##### docker容器与外部环境网络访问
 1. docker容器默认就可以访问外部的网络
 2. 外部访问docker容器时，容器的宿主机默认会创建一个docker-proxy进程处理外部的访问，docker-proxy会监听容器绑定到宿主机的的端口，当外部访问宿主机的该端口时，docker-proxy就会把访问转发给容器。
+
+##### 固定容器的ip
+1. 创建一个自定义的网络
+
+   ```
+   docker network create --subnet=172.20.0.0/16 extnetwork
+   ```
+
+2. 在创建容器的时候加上参数，使用自定义的网络，以及指定ip 
+
+   ```
+   --net extnetwork --ip 172.20.0.2
+   ```
+
+   
 
 ## 容器的数据保存
 1. 保存在镜像中,例如在容器安装的软件，应用
