@@ -21,17 +21,14 @@
          <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
          <scope>runtime</scope>
-  </dependency>
-     
-  <dependency>
-           <groupId>org.flywaydb</groupId>
-           <artifactId>flyway-core</artifactId>
-           <version>5.2.4</version>
-      </dependency>  
+    </dependency>
+     <dependency>
+         <groupId>org.flywaydb</groupId>
+         <artifactId>flyway-core</artifactId>
+         <version>5.2.4</version>
+     </dependency>
+         
      ```
-   
-     
-   
    - 添加配置
    
      ```properties
@@ -74,7 +71,7 @@
      flyway.user= # 待迁移数据库的登录用户。
   flyway.password= # 待迁移数据库的登录用户密码。
      flyway.validate-on-migrate=true # 在运行迁移时是否要自动验证。 默认值： true 。
-  
+    
      ```
    
    - sql 文件的命名规则 ：V{version}__{name}.sql

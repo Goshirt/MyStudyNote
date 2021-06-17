@@ -2,7 +2,7 @@
     既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。
     通道可以异步地读写。
     通道中的数据总是要先读到一个 Buffer，或者总是要从一个 Buffer 中写入。
-     
+
 ### 分类：
 * FileChannel 从文件中读写数据。
 * DatagramChannel 能通过 UDP 读写网络中的数据。
@@ -10,24 +10,26 @@
 * ServerSocketChannel 可以监听新进来的 TCP 连接，像 Web 服务器那样。对每一个新进来的连接都会创建一个 SocketChannel。
       
 ### FileChannel：
-    打开 FileChannel：无法直接打开一个 FileChannel，需要通过使用一个 InputStream、OutputStream 或 RandomAccessFile 
-                    来获取一个 FileChannel 实例
-        RandomAccessFile aFile = new RandomAccessFile("data/nio-data.txt", "rw");
-        FileChannel inChannel = aFile.getChannel();
-    从 FileChannel 读取数据：
-        ByteBuffer buf = ByteBuffer.allocate(48);
-        int bytesRead = inChannel.read(buf);// int 值表示了有多少字节被读到了 Buffer 中。如果返回 - 1，表示到了文件末尾
-    向 FileChannel 写数据:
-        String newData = "New String to write to file..." + System.currentTimeMillis();
-        ByteBuffer buf = ByteBuffer.allocate(48);
-        buf.clear();
-        buf.put(newData.getBytes());
-        buf.flip();
-        while(buf.hasRemaining()) {// 确保Buffer 中已经没有尚未写入通道的字节
-            channel.write(buf);
-        }
-    关闭 FileChannel：
-        channel.close();
+```java
+打开 FileChannel：无法直接打开一个 FileChannel，需要通过使用一个 InputStream、OutputStream 或 RandomAccessFile 
+                来获取一个 FileChannel 实例
+    RandomAccessFile aFile = new RandomAccessFile("data/nio-data.txt", "rw");
+    FileChannel inChannel = aFile.getChannel();
+从 FileChannel 读取数据：
+    ByteBuffer buf = ByteBuffer.allocate(48);
+    int bytesRead = inChannel.read(buf);// int 值表示了有多少字节被读到了 Buffer 中。如果返回 - 1，表示到了文件末尾
+向 FileChannel 写数据:
+    String newData = "New String to write to file..." + System.currentTimeMillis();
+    ByteBuffer buf = ByteBuffer.allocate(48);
+    buf.clear();
+    buf.put(newData.getBytes());
+    buf.flip();
+    while(buf.hasRemaining()) {// 确保Buffer 中已经没有尚未写入通道的字节
+        channel.write(buf);
+    }
+关闭 FileChannel：
+    channel.close();
+```
 ### SocketChannel：
     打开 SocketChannel：
           SocketChannel socketChannel = SocketChannel.open();
@@ -92,8 +94,9 @@
         bytesRead = inChannel.read(buf);
     }
     aFile.close();
-            
-     
+
+
+​     
 
 ## 管道Pipe
     管道是 2 个线程之间的单向数据连接。Pipe有一个 source 通道和一个 sink 通道。数据会被写到 sink 通道，从 source 通道读取
@@ -126,7 +129,7 @@
    > 当向 buffer 写入数据时，buffer 会记录下写了多少数据。一旦要读取数据，需要通过 flip() 方法将 Buffer 从写模式切换到读模式。在读模式下，可以读取之前写入到 buffer 的所有数据。旦读完了所有的数据，就需要清空缓冲区，让它可以再次被写入。有两种方式能清空缓冲区：调用 clear() 或 compact() 方法:
    * clear() 方法会清空整个缓冲区。
    * compact() 方法只会清除已经读过的数据。任何未读的数据都被移到缓冲区的起始处，新写入的数据将放到缓冲区未读数据的后面。
-      
+
 ### Buffer的三个基本属性：
   * capacity
   * position
@@ -155,16 +158,18 @@
 
 ## 选择器 Selector：
 > 能够检测一到多个 NIO 通道，并能够知晓通道是否为诸如读写事件做好准备的组件。这样，一个单独的线程可以管理多个 channel，从而管理多个网络连接
-      
+
 ### Selector 的创建:
-    通过调用 Selector.open() 方法创建一个 Selector
-    Selector selector = Selector.open();
-          
+```java
+#通过调用 Selector.open() 方法创建一个 Selector
+Selector selector = Selector.open();
+```
+
 ### 向 Selector 注册通道:
-     为了将 Channel 和 Selector 配合使用，必须将 channel 注册到 selector 上
+     #为了将 Channel 和 Selector 配合使用，必须将 channel 注册到 selector 上
      channel.configureBlocking(false);
      SelectionKey key = channel.register(selector,Selectionkey.OP_READ);
-    与 Selector 一起使用时，Channel 必须处于非阻塞模式下。这意味着不能将 FileChannel 与 Selector 一起使用，因为 FileChannel 不能切换到非阻塞模式。而套接字通道都可以注意 register() 方法的第二个参数。这是一个 “interest 集合”，意思是在通过 Selector 监听 Channel 时对什么事件感兴趣。可以监听四种不同类型的事件：
+    #与 Selector 一起使用时，Channel 必须处于非阻塞模式下。这意味着不能将 FileChannel 与 Selector 一起使用，因为 FileChannel 不能切换到非阻塞模式。而套接字通道都可以注意 register() 方法的第二个参数。这是一个 “interest 集合”，意思是在通过 Selector 监听 Channel 时对什么事件感兴趣。可以监听四种不同类型的事件：
       Connect
       Accept
       Read
@@ -176,7 +181,7 @@
       SelectionKey.OP_WRITE
     如果你对不止一种事件感兴趣，那么可以用 “位或” 操作符将常量连接起来，如下：
       int interestSet = SelectionKey.OP_READ | SelectionKey.OP_WRITE;
-          
+
 ### SelectionKey:
 > 当向 Selector 注册 Channel 时，register() 方法会返回一个 SelectionKey 对象。这个对象包含了一些你感兴趣的属性：
 * interest 集合
@@ -215,7 +220,7 @@
     int select() //阻塞到至少有一个通道在你注册的事件上就绪了
     int select(long timeout) //阻塞 timeout 毫秒 (参数)。
     int selectNow()  //不会阻塞，不管什么通道就绪都立刻返回,如果自从前一次选择操作后，没有通道变成可选择的，则此方法直接返回零
-    
+
 * select() 方法返回的 int 值表示有多少通道已经就绪。亦即，自上次调用 select() 方法后有多少通道变成就绪状态。如果调用 select() 方法，
     因为有一个通道变成就绪状态，返回了 1，若再次调用 select() 方法，如果另一个通道就绪了，它会再次返回 1。如果对第一个就绪的 channel 没有做任何操作，现在就有两个就绪的通道，但在每次 select() 方法调用之间，只有一个通道就绪了。selectedKeys()一旦调用了 select() 方法，并且返回值表明有一个或更多个通道就绪了，然后可以通过调用 selector 的 selectedKeys() 方法，访问 “已选择键集selected key set）” 中的就绪通道。如下所示：
     et selectedKeys = selector.selectedKeys();

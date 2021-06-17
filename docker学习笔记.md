@@ -257,6 +257,14 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    
 6. 重启mysql容器
    `docker start mysql-test`
+   
+7. 或者直接使用
+
+   ```
+   docker run     -p 3306:3306     -e MYSQL_ROOT_PASSWORD=123456     -v /home/mysql-volume/data:/var/lib/mysql:rw     -v /home/mysql-volume/log:/var/log/mysql:rw     -v /etc/localtime:/etc/localtime:ro     --privileged=true     --name mysql5s     -d 273c7fcf9499 --lower_case_table_names=1
+   ```
+
+   
 
 ### docker 实战zookeeper
 1. 拉取镜像
@@ -324,4 +332,10 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    https:false
    ```
 
+   ​    
    
+5. 通过http://192.168.42.5:8090 访问，第一登录时需要修改管理员root密码。
+
+   
+
+ 

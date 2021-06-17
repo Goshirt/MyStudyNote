@@ -57,14 +57,11 @@
 
 ### 防火墙常用命令
 - `firewall-cmd --zone=pulbic --add-port=3306/tcp --permanent` 开发3306端口
-
 - `systemctl status firewalld` 查看防火墙状态
-
 - `firewall-cmd --list-ports` 查看防火墙开放的端口
-
-- `systemctl start firewall` 开启防火墙
-
+- `systemctl start firewalld.service`开启防火墙
 - ` firewall-cmd --reload` 配置立即生效
+- `systemctl stop firewalld.service` 关闭
 
 ### centos中Tomcat输出控制台
 ```
@@ -86,6 +83,7 @@ tail -f catalina.out
 - `cat /proc/meninfo` 读出内核的信息并显示
 - `cat /proc/cpuinfo` 读出cpu的信息并显示
 - `df -h` 显示硬盘的使用信息
+- `du -sh /*` 显示每个目录使用磁盘容量
 - `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
 - ` netstat -tunlp|grep 端口` 查看端口占用 ，也可以安装 lsof  `yum install lsof`,然后使用共`lsof -i:端口`
  ### buff/cache 缓存过高时可以手动清楚缓存 

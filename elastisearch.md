@@ -7,4 +7,4 @@
 
 - `curl 'localhost:9200/_cat/nodes?v'` 获取集群的所有结点信息
 - `curl 'localhost:9200/_cat/indices?v'` 获取所有的索引
-- 
+- ``

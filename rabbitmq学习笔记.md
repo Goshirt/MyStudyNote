@@ -63,9 +63,9 @@ Binding是交换机将消息路由给队列所遵循的规则。如果要指示�
 2. 解决方案
 
 - 消息持久化落库，对消息状态进行打标，后台轮旬数据库中每没有完成的消息，重发，轮旬次数边界值的设定。由于第一步的两次数据库操作，在分布式高并发场景下，数据库性能瓶颈。
-  ![消息持久化落库](G:/study_note/MyStudyNote/img/rabbitmq/100one.png)
+  ![消息持久化落库](./img/rabbitmq/100one.png)
 - 消息的延迟投递 ，做二次确认，回调检查。step1与step2发送的是同一条消息到不同的队列，并且step2发送的可以根据业务设置相应的延迟时间，step1发送到消息进过消费者消费之后，返回一个新的信息到mq新的队列，callback service 监听该队列，并将消息持久化到msg DB，当step2发送的延迟消息到达mq时，触发对应的监听器，callback service 去msg DB 查找，如果找不到，发起rpc给上游服务器，重新执行。适合分布式高并发场景
-  ![消息持久化落库](G:/study_note/MyStudyNote/img/rabbitmq/100two.png)
+  ![消息持久化落库](./img/rabbitmq/100two.png)
 ## 如何避免消费重复消费
 1. 消费端实现幂等性，确保消息不会消费多次，即使收到多条一样的消息。
 
