@@ -71,3 +71,9 @@
 - `curl 'localhost:9200/_cat/indices?v'` 获取所有的索引
 - 
 
+## spring-boot 整合es
+
+### 版本兼容性
+
+![1623847199056](C:\Users\file\MyStudyNote\img\elastisearch\1623847199056.png)
+
