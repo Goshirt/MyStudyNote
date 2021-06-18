@@ -310,4 +310,3 @@ channel.basicConsume(queueName, true, new MyConsumer(channel));
 4. 多活模式
 
 ## set（单元化架构）
- - 不同集群中节点的通信 federation插件

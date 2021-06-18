@@ -1,12 +1,10 @@
-
-/Linux下的根目录是:/
 # CentOS命令
 
 ## 文件具体信息显示：
   >  第一小块的第1位符号：-代表文件 d代表的是目录 l代表的是连接
   > 第2到4代表的是所拥有者的权限，r是可读，w是可写，x是可执行，-是无
-  第5到7代表的是所属组的权限,r是可读，w是可写，x是可执行，-是无
-  往后显示的依次是所属者的名字，所属组的名字，大小，创建时间，文件或者目录或者连接名
+第5到7代表的是所属组的权限,r是可读，w是可写，x是可执行，-是无
+往后显示的依次是所属者的名字，所属组的名字，大小，创建时间，文件或者目录或者连接名
 
 ## 命令
 
@@ -15,9 +13,7 @@
 - `cd ../` 	进入上级目录
 - `cd ../etc` 进入指定目录
 - `clear` 清屏
-- `ip addr` 	查看CentOS 的ip，用于shell连接``
-
-
+- `ip addr` 	查看CentOS 的ip，用于shell连接
 
 ### 显示
 - `grep` 查找字符串
@@ -57,14 +53,11 @@
 
 ### 防火墙常用命令
 - `firewall-cmd --zone=pulbic --add-port=3306/tcp --permanent` 开发3306端口
-
 - `systemctl status firewalld` 查看防火墙状态
-
 - `firewall-cmd --list-ports` 查看防火墙开放的端口
-
-- `systemctl start firewall` 开启防火墙
-
+- `systemctl start firewalld.service`开启防火墙
 - ` firewall-cmd --reload` 配置立即生效
+- `systemctl stop firewalld.service` 关闭
 
 ### centos中Tomcat输出控制台
 ```
@@ -86,6 +79,7 @@ tail -f catalina.out
 - `cat /proc/meninfo` 读出内核的信息并显示
 - `cat /proc/cpuinfo` 读出cpu的信息并显示
 - `df -h` 显示硬盘的使用信息
+- `du -sh /*` 显示每个目录使用磁盘容量
 - `top` 查看内存占用情况 在top命令运行的情况下，可以按f键选择其他需要显示的信息，方向盘的上下键进行选择，空格键选中或者取消，s键确定排序的字段，q可以退出
 - ` netstat -tunlp|grep 端口` 查看端口占用 ，也可以安装 lsof  `yum install lsof`,然后使用共`lsof -i:端口`
  ### buff/cache 缓存过高时可以手动清楚缓存 
@@ -152,15 +146,6 @@ systemctl restart mysqld
 show variables like '%character%'; 
 #全显示为utf-8成功
 ```
-3. sh脚本CRLF格式转LF。
-
-   ```
-   sed -i 's/\r$//' [file] 
-   ```
-
-   
-
-4. 
 
 ## centos中Tomcat输出控制台
 	进入tomcat安装目录下的logs文件夹 动态打印日志信息
@@ -172,8 +157,6 @@ show variables like '%character%';
 - `echo 1 > /proc/sys/vm/drop_caches`  清除pagecache
 - `echo 2 > /proc/sys/vm/drop_caches` 清除回收slab分配器中的对象（包括目录项缓存和inode缓存）
 - `echo 3 > /proc/sys/vm/drop_caches`清除pagecache和slab分配器中的缓存对象
-
-
 
 ### 克隆虚拟机出现的问题
 
@@ -199,11 +182,9 @@ show variables like '%character%';
   
   ```
 
-  
 
 ## lrzsz 工具
 
  - `yum install -y lrzsz`安装
  - `sz filename` 可以从服务端下载指定文件名的文件到本地
  - `rz`选择指定的文件上传到服务器
-

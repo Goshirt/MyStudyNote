@@ -1,4 +1,4 @@
-Q
+
 
 ## centos安装docker及常用命令
 #### 安装步骤
@@ -37,6 +37,7 @@ Q
 - ` docker network rm extnetwork ` 删除指定的网络extnetwork
 - `docker cp {sourceFile} {containerName}:{path} ` 把宿主机的指定路径复制到容器中的指定路径
 - `docker cp {containerName}:{file} {sourcePath}` 把容器中的文件复制到宿主机指定路径中
+
 ## 镜像 image
 #### 运行镜像
 镜像的运行是在原有的镜像基础上添加一层容器层，对镜像的增删改查操作都只是记录在容器层中，这样就保证多个镜像共享基础镜像而互不干扰，修改的时候使用的是copy-on-write的特性，先把修改的文件从上往下找，找到第一个直接复制到容器层进行修改
@@ -93,8 +94,6 @@ RUN yum install -y wget
       - Exec格式：ENTRYPOINT ["executable","param1","param2"] (推荐格式) eg: `ENTRYPOINT ["/bin/echo","hello"] CMD ["world"]` 当通过docker run -it 启动容器时会输出: hello word
       - Shell格式：ENTRYPOINT command param1 param2
 
-
-
 #### docker file 实战部署jar包
 
 ```dockerfile
@@ -139,21 +138,6 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
 1. docker容器默认就可以访问外部的网络
 2. 外部访问docker容器时，容器的宿主机默认会创建一个docker-proxy进程处理外部的访问，docker-proxy会监听容器绑定到宿主机的的端口，当外部访问宿主机的该端口时，docker-proxy就会把访问转发给容器。
 
-##### 固定容器的ip
-1. 创建一个自定义的网络
-
-   ```
-   docker network create --subnet=172.20.0.0/16 extnetwork
-   ```
-
-2. 在创建容器的时候加上参数，使用自定义的网络，以及指定ip 
-
-   ```
-   --net extnetwork --ip 172.20.0.2
-   ```
-
-   
-
 ## 容器的数据保存
 1. 保存在镜像中,例如在容器安装的软件，应用
 2. 保存在data volume，volume其实是宿主机文件系统的一部分，容量取决于当前宿主机未使用的空间，有两种类型的volume:`bind mount` 和 `docker managed`。例如容器运行产生的数据
@@ -196,7 +180,7 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
 
 3. 在每一个redis.conf中做以下改变
 
-   -  `daemonize  no` 改为`daemonize yes`
+   -  Qno` 改为`daemonize yes`
 
    - 注释掉`bind 127.0.0.1`
    
@@ -204,7 +188,7 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    
    - 取消`requiredpass foobared` 的注释，并将`foobared` 改成自己的密码口令
    
-   - 修改log的文件路径    /
+   - 修改log的文件路径    
    
 4. 使用下载好的redis镜像，启动三个redis容器,三个redis分别映射宿主机的6379，6380，6381三个端口。redis-one 将作为maste，redis-two和reids-three作为slave
    
@@ -255,8 +239,6 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
 
 ### docker 实战mysql
 
-#### 安装mysql
-
 1. 拉取自己需要的mysql 版本镜像
 	`docker pull mysql:5.7`
 	
@@ -276,12 +258,17 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    
 6. 重启mysql容器
    `docker start mysql-test`
+   
+7. 或者直接使用
+
+   ```
+   docker run     -p 3306:3306     -e MYSQL_ROOT_PASSWORD=123456     -v /home/mysql-volume/data:/var/lib/mysql:rw     -v /home/mysql-volume/log:/var/log/mysql:rw     -v /etc/localtime:/etc/localtime:ro     --privileged=true     --name mysql5s     -d 273c7fcf9499 --lower_case_table_names=1
+   ```
+
 
 ### docker 实战zookeeper
 1. 拉取镜像
    `docker pull zookeeper`
-
-
 
 ### docker 实战jenkins
 
@@ -340,50 +327,30 @@ ENTRYPOINT /bin/sh -c   /etc/init.d/start.sh
    ```
    host: 192.168.42.5
    port: 8090
-   https:false
+   https:false    
    ```
 
-   
-
-5. 修改gitlab clone的http端口，进入容器中，然后 
-
-   ` vi /opt/gitlab/embedded/service/gitlab-rails/config/gitlab.yml `
-
-6. 修改port端口
-
-   ```yml
-   ## GitLab settings
-   gitlab:
-       ## Web server settings (note: host is the FQDN, do not include http://)
-       host: 10.119.116.160
-       port: 8181
-       https: false
-   ```
+5. 通过http://192.168.42.5:8090 访问，第一登录时需要修改管理员root密码。
 
 ### docker rabbitmq
-1. 拉取镜像
 
-   ```shell
-   $ docker pull rabbitmq:management
-   ```
-
+   1. 拉取镜像
    
-
-2. 启动
-
-   ```shell
-   $ docker run -d -p 5671:5671 -p 5672:5672 -p 15672:15672 -v /home/data/rabbitmq:/etc/rabbitmq -v /home/data/rabbitmq:/var/lib/rabbitmq -v /home/data/rabbitmq:/var/log/rabbitmq --name rabbit-dc --restart always -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:management
-   ```
-
+      ```shell
+      $ docker pull rabbitmq:management
+      ```
    
-
-3. 进入容器，开启控制台插件
-
-   ```shell
-   $ docker exec -it rabbit-dc
-   $ rabbitmq-plugins enable rabbitmq_management
-   ```
-
+   2. 启动
    
-
-4. 
+      ```shell
+      $ docker run -d -p 5671:5671 -p 5672:5672 -p 15672:15672 -v /home/data/rabbitmq:/etc/rabbitmq -v /home/data/rabbitmq:/var/lib/rabbitmq -v /home/data/rabbitmq:/var/log/rabbitmq --name rabbit-dc --restart always -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:management
+      ```
+   
+   3. 进入容器，开启控制台插件
+   
+      ```shell
+      $ docker exec -it rabbit-dc
+      $ rabbitmq-plugins enable rabbitmq_management
+      ```
+   
+      
